@@ -59,7 +59,9 @@ $e = static function (string $v): string {
                     </a>
                 </li>
                 <li class="nav-item">
-                    <span class="nav-link"><?= $e($currentUser->getFullName()) ?></span>
+                    <a href="<?= $e($baseUrl) ?>profile.php?id=<?= (int) $currentUser->getId() ?>" class="nav-link">
+                        <i class="fas fa-user"></i> <?= $e($currentUser->getFullName()) ?>
+                    </a>
                 </li>
                 <li class="nav-item">
                     <form action="<?= $e($baseUrl) ?>auth.php" method="post">

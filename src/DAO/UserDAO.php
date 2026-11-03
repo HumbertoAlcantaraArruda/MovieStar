@@ -60,6 +60,30 @@ class UserDAO
     }
 
     /**
+     * Atualiza nome, sobrenome, bio e foto (e-mail, senha e token não mudam aqui).
+     */
+    public function update(User $user): void
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE users SET name = :name, lastname = :lastname, bio = :bio, image = :image WHERE id = :id'
+        );
+        $stmt->bindValue(':name', $user->getName());
+        $stmt->bindValue(':lastname', $user->getLastname());
+        $stmt->bindValue(':bio', $user->getBio());
+        $stmt->bindValue(':image', $user->getImage());
+        $stmt->bindValue(':id', (int) $user->getId(), PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    public function updatePassword(int $id, string $hash): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET password = :password WHERE id = :id');
+        $stmt->bindValue(':password', $hash);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    /**
      * @param array<string, mixed> $row
      */
     private function hydrate(array $row): User

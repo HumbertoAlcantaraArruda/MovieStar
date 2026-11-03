@@ -6,6 +6,7 @@ namespace MovieStar\Controllers;
 
 use MovieStar\Core\Auth;
 use MovieStar\Core\Session;
+use MovieStar\Core\UserRules;
 use MovieStar\DAO\UserDAO;
 use MovieStar\Models\User;
 
@@ -14,9 +15,6 @@ use MovieStar\Models\User;
  */
 class AuthController
 {
-    private const MIN_PASSWORD_LENGTH = 8;
-    private const MAX_FIELD_LENGTH    = 100;
-
     private UserDAO $userDAO;
     private Session $session;
     private Auth $auth;
@@ -77,20 +75,20 @@ class AuthController
             $this->redirect('auth.php', 'Preencha todos os campos.', 'error');
         }
 
-        if (mb_strlen($name) > self::MAX_FIELD_LENGTH || mb_strlen($lastname) > self::MAX_FIELD_LENGTH) {
-            $this->redirect('auth.php', 'Nome ou sobrenome muito longo.', 'error');
+        $nameError = UserRules::nameError($name, $lastname);
+
+        if ($nameError !== null) {
+            $this->redirect('auth.php', $nameError, 'error');
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 191) {
             $this->redirect('auth.php', 'Informe um e-mail válido.', 'error');
         }
 
-        if (strlen($password) < self::MIN_PASSWORD_LENGTH) {
-            $this->redirect('auth.php', 'A senha deve ter ao menos ' . self::MIN_PASSWORD_LENGTH . ' caracteres.', 'error');
-        }
+        $passwordError = UserRules::passwordError($password, $confirm);
 
-        if ($password !== $confirm) {
-            $this->redirect('auth.php', 'As senhas não conferem.', 'error');
+        if ($passwordError !== null) {
+            $this->redirect('auth.php', $passwordError, 'error');
         }
 
         if ($this->userDAO->findByEmail($email) !== null) {

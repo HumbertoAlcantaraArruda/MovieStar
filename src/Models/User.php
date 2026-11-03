@@ -6,6 +6,8 @@ namespace MovieStar\Models;
 
 class User
 {
+    public const DEFAULT_IMAGE = 'user.png';
+
     private ?int $id = null;
     private string $name = '';
     private string $lastname = '';
@@ -79,6 +81,11 @@ class User
     public function getImage(): ?string
     {
         return $this->image;
+    }
+
+    public function getImageOrDefault(): string
+    {
+        return $this->image ?? self::DEFAULT_IMAGE;
     }
 
     public function setImage(?string $image): self

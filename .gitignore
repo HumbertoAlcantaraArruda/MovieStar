@@ -8,3 +8,8 @@ ROADMAP.md
 img/movies/*
 !img/movies/.gitkeep
 !img/movies/movie_cover.jpg
+
+# Uploads de fotos de usuários (mantém a pasta e a foto padrão)
+img/users/*
+!img/users/.gitkeep
+!img/users/user.png

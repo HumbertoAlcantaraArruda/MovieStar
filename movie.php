@@ -53,7 +53,8 @@ require_once __DIR__ . '/templates/header.php';
 <?php endif; ?>
             </p>
 <?php if ($author !== null): ?>
-            <p class="text-white-50 small">Cadastrado por <?= $e(trim($author->getName() . ' ' . $author->getLastname())) ?></p>
+            <p class="text-white-50 small">Cadastrado por
+                <a href="<?= $e($baseUrl) ?>profile.php?id=<?= (int) $author->getId() ?>"><?= $e($author->getFullName()) ?></a></p>
 <?php endif; ?>
 <?php if ($page['isOwner']): ?>
             <p>
