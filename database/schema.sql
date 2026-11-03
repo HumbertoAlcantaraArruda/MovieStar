@@ -37,3 +37,15 @@ CREATE TABLE IF NOT EXISTS reviews (
     CONSTRAINT fk_reviews_users FOREIGN KEY (users_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_reviews_movies FOREIGN KEY (movies_id) REFERENCES movies(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tentativas de senha (login e troca de senha) para o limite contra força bruta (Core\LoginThrottle).
+-- Sem FK para users: tentativas com e-mails inexistentes também contam.
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(191) NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_login_attempts_email (email, attempted_at),
+    KEY idx_login_attempts_ip (ip_address, attempted_at),
+    KEY idx_login_attempts_time (attempted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

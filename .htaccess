@@ -1,0 +1,39 @@
+# MovieStar: regras de segurança do Apache 2.4 (requer AllowOverride All ou ao menos Options, FileInfo e AuthConfig).
+# Módulos usados: mod_alias, mod_rewrite e mod_headers (todos ativos por padrão no WAMP).
+
+# Sem listagem de diretórios e sem negociação de conteúdo (ex.: /config/database servindo database.php).
+# SymLinksIfOwnerMatch: o mod_rewrite em .htaccess exige FollowSymLinks ou esta opção.
+Options -Indexes -MultiViews +SymLinksIfOwnerMatch
+
+# Rejeita PATH_INFO (ex.: /movie.php/x): a aplicação não usa e evita URLs ambíguas.
+AcceptPathInfo Off
+
+# Arquivos e pastas ocultos (.git, .gitignore, .claude, .idea...) respondem 404.
+# 1) Pela URL pedida:
+RedirectMatch 404 "/\.(?!well-known/)"
+# 2) Pelo caminho real no disco: no Windows, nomes curtos 8.3 (ex.: /GIT~1/config para .git/config,
+#    /GITIGN~1 para .gitignore) não começam com ponto e escapam da regra acima. Em .htaccess,
+#    o RewriteRule compara o caminho já resolvido pelo Apache (o nome longo verdadeiro).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule "(^|/)\.(?!well-known(/|$))" - [R=404,L]
+</IfModule>
+
+# Arquivos que nunca devem ser servidos diretamente: documentação local, dumps, logs, backups
+# e os arquivos de inicialização (só fazem sentido via require).
+<FilesMatch "(?i)(\.(md|sql|log|bak|old|orig|swp|dist|ini)|~)$|^(bootstrap|autoload)\.php$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # Scripts e estilos só do próprio site e do cdnjs (Bootstrap, Font Awesome, jQuery); sem JavaScript inline.
+    # style-src mantém 'unsafe-inline' por causa de atributos style="" nas páginas.
+    # frame-src: apenas o trailer (youtube-nocookie). frame-ancestors 'none' equivale ao X-Frame-Options DENY.
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    # Não anuncia a versão do PHP.
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+</IfModule>

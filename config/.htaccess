@@ -1,0 +1,2 @@
+# Configuração (credenciais): nunca servida por HTTP (Apache 2.4).
+Require all denied

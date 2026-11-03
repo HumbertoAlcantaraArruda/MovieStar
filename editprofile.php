@@ -12,13 +12,14 @@ require_once __DIR__ . '/bootstrap.php';
  * @var \MovieStar\DAO\ReviewDAO $reviewDAO
  * @var \MovieStar\Core\Session $session
  * @var \MovieStar\Core\Auth $auth
+ * @var \MovieStar\Core\LoginThrottle $loginThrottle
  * @var string $baseUrl
  */
 
 $imageUploader = new ImageUploader(__DIR__ . '/img/users');
 
 // Exige login; trata o POST de dados ou de senha.
-$user = (new ProfileController($userDAO, $movieDAO, $reviewDAO, $imageUploader, $session, $auth, $baseUrl))->handleEdit();
+$user = (new ProfileController($userDAO, $movieDAO, $reviewDAO, $imageUploader, $session, $auth, $loginThrottle, $baseUrl))->handleEdit();
 
 require_once __DIR__ . '/templates/header.php';
 ?>

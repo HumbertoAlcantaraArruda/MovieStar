@@ -11,13 +11,14 @@ require_once __DIR__ . '/bootstrap.php';
  * @var \MovieStar\DAO\ReviewDAO $reviewDAO
  * @var \MovieStar\Core\Session $session
  * @var \MovieStar\Core\Auth $auth
+ * @var \MovieStar\Core\LoginThrottle $loginThrottle
  * @var string $baseUrl
  */
 
 $imageUploader = new ImageUploader(__DIR__ . '/img/users');
 
 // Responde 404 (sem redirecionar) quando o id é inválido ou o usuário não existe.
-$page = (new ProfileController($userDAO, $movieDAO, $reviewDAO, $imageUploader, $session, $auth, $baseUrl))->handleShow();
+$page = (new ProfileController($userDAO, $movieDAO, $reviewDAO, $imageUploader, $session, $auth, $loginThrottle, $baseUrl))->handleShow();
 
 require_once __DIR__ . '/templates/header.php';
 ?>

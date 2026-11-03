@@ -17,12 +17,17 @@ class ErrorHandler
 
     private bool $debug;
     private string $logFile;
+    private string $homeUrl;
     private bool $handling = false;
 
-    public function __construct(bool $debug, string $logFile)
+    /**
+     * @param string $homeUrl link "Voltar para a página inicial" (o $baseUrl do bootstrap)
+     */
+    public function __construct(bool $debug, string $logFile, string $homeUrl = '/')
     {
         $this->debug   = $debug;
         $this->logFile = $logFile;
+        $this->homeUrl = $homeUrl;
     }
 
     public function register(): void
@@ -32,6 +37,8 @@ class ErrorHandler
         ini_set('display_errors', '0');
         ini_set('log_errors', '0');
         ini_set('error_log', $this->logFile);
+        // Rastros (traces) sem os argumentos das funções: senhas e outros dados não vão para o log nem para a tela.
+        ini_set('zend.exception_ignore_args', '1');
 
         // Buffer de saída: permite descartar HTML parcial se algo falhar no meio da página.
         ob_start();
@@ -125,12 +132,12 @@ class ErrorHandler
         $e    = static function (string $v): string {
             return htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
         };
-        $home = rtrim(str_replace(DIRECTORY_SEPARATOR, '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/'))), '/') . '/';
+        $home = $this->homeUrl;
 
         $html = '<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8">'
             . '<meta name="viewport" content="width=device-width, initial-scale=1">'
             . '<title>Erro - MovieStar</title>'
-            . '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">'
+            . '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css" integrity="sha512-rt/SrQ4UNIaGfDyEXZtNcyWvQeOq0QLygHluFQcSjaGB04IxWhal71tKuzP6K8eYXYB6vJV4pHkXcmFGGQ1/0w==" crossorigin="anonymous" referrerpolicy="no-referrer">'
             . '</head><body class="bg-dark text-light"><div class="container py-5 text-center">'
             . '<h1 class="display-4">Algo deu errado</h1>'
             . '<p class="lead">Ocorreu um erro inesperado. Tente novamente em instantes.</p>'

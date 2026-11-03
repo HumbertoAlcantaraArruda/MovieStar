@@ -58,8 +58,7 @@ class ReviewController
         $movie     = is_int($movieId) ? $this->movieDAO->findById($movieId) : null;
         $moviePath = 'movie.php?id=' . (is_int($movieId) ? $movieId : 0);
 
-        $token = $_POST['csrf_token'] ?? null;
-        if (!is_string($token) || !$this->session->isValidCsrfToken($token)) {
+        if (!$this->session->isValidCsrfToken($_POST['csrf_token'] ?? null)) {
             $this->redirect($movie !== null ? $moviePath : '', 'Requisição inválida. Tente novamente.', 'error');
         }
 

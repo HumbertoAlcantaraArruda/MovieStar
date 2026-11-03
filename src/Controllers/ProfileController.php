@@ -6,6 +6,7 @@ namespace MovieStar\Controllers;
 
 use MovieStar\Core\Auth;
 use MovieStar\Core\ImageUploader;
+use MovieStar\Core\LoginThrottle;
 use MovieStar\Core\Pagination;
 use MovieStar\Core\Session;
 use MovieStar\Core\UploadException;
@@ -31,6 +32,7 @@ class ProfileController
     private ImageUploader $imageUploader;
     private Session $session;
     private Auth $auth;
+    private LoginThrottle $loginThrottle;
     private string $baseUrl;
 
     public function __construct(
@@ -40,6 +42,7 @@ class ProfileController
         ImageUploader $imageUploader,
         Session $session,
         Auth $auth,
+        LoginThrottle $loginThrottle,
         string $baseUrl
     ) {
         $this->userDAO       = $userDAO;
@@ -48,6 +51,7 @@ class ProfileController
         $this->imageUploader = $imageUploader;
         $this->session       = $session;
         $this->auth          = $auth;
+        $this->loginThrottle = $loginThrottle;
         $this->baseUrl       = $baseUrl;
     }
 
@@ -185,9 +189,17 @@ class ProfileController
             $this->redirect(self::EDIT_PATH, 'Preencha a senha atual e a nova senha.', 'error');
         }
 
+        // A senha atual também é um "oráculo" de senha: mesmo limite do login (quem roubou a sessão
+        // não consegue testar senhas à vontade para depois trocá-la).
+        if (!$this->loginThrottle->attempt($user->getEmail())) {
+            $this->redirect(self::EDIT_PATH, LoginThrottle::blockedMessage(), 'error');
+        }
+
         if (!password_verify($current, $user->getPassword())) {
             $this->redirect(self::EDIT_PATH, 'A senha atual está incorreta.', 'error');
         }
+
+        $this->loginThrottle->clear($user->getEmail());
 
         $passwordError = UserRules::passwordError($password, $confirm);
 
@@ -195,15 +207,18 @@ class ProfileController
             $this->redirect(self::EDIT_PATH, $passwordError, 'error');
         }
 
+        // Token novo: as outras sessões abertas desta conta (ex.: uma sessão roubada) deixam de valer.
+        $token = bin2hex(random_bytes(25));
+
         try {
-            $this->userDAO->updatePassword((int) $user->getId(), password_hash($password, PASSWORD_DEFAULT));
+            $this->userDAO->updatePassword((int) $user->getId(), password_hash($password, PASSWORD_DEFAULT), $token);
         } catch (PDOException $e) {
             error_log('Falha ao atualizar senha: ' . $e->getMessage());
             $this->redirect(self::EDIT_PATH, 'Não foi possível alterar a senha. Tente novamente.', 'error');
         }
 
-        // Regenera o id da sessão após a troca de credencial.
-        $this->session->login((int) $user->getId());
+        // Esta sessão continua logada, com novo id e o token novo.
+        $this->session->login((int) $user->getId(), $token);
         $this->redirect(self::EDIT_PATH, 'Senha alterada com sucesso!');
     }
 

@@ -14,7 +14,8 @@ const SEARCH_PER_PAGE = 12;
 const SEARCH_MAX_LENGTH = 100;
 
 $rawTerm = $_GET['q'] ?? '';
-$searchTerm = is_string($rawTerm) ? trim($rawTerm) : '';
+// Arrays (q[]=) e UTF-8 inválido viram busca vazia.
+$searchTerm = is_string($rawTerm) && mb_check_encoding($rawTerm, 'UTF-8') ? trim($rawTerm) : '';
 if (mb_strlen($searchTerm, 'UTF-8') > SEARCH_MAX_LENGTH) {
     $searchTerm = trim(mb_substr($searchTerm, 0, SEARCH_MAX_LENGTH, 'UTF-8'));
 }

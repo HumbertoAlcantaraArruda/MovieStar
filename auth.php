@@ -8,10 +8,11 @@ require_once __DIR__ . '/bootstrap.php';
  * @var \MovieStar\DAO\UserDAO $userDAO
  * @var \MovieStar\Core\Session $session
  * @var \MovieStar\Core\Auth $auth
+ * @var \MovieStar\Core\LoginThrottle $loginThrottle
  * @var string $baseUrl
  */
 
-(new AuthController($userDAO, $session, $auth, $baseUrl))->handle();
+(new AuthController($userDAO, $session, $auth, $loginThrottle, $baseUrl))->handle();
 
 require_once __DIR__ . '/templates/header.php';
 ?>

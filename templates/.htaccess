@@ -1,0 +1,2 @@
+# Partes de página: só são incluídas pelas páginas da raiz, nunca acessadas diretamente (Apache 2.4).
+Require all denied

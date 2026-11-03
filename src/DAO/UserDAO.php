@@ -75,10 +75,14 @@ class UserDAO
         $stmt->execute();
     }
 
-    public function updatePassword(int $id, string $hash): void
+    /**
+     * Troca o hash da senha e o token do usuário (o token novo encerra as outras sessões abertas).
+     */
+    public function updatePassword(int $id, string $hash, string $token): void
     {
-        $stmt = $this->pdo->prepare('UPDATE users SET password = :password WHERE id = :id');
+        $stmt = $this->pdo->prepare('UPDATE users SET password = :password, token = :token WHERE id = :id');
         $stmt->bindValue(':password', $hash);
+        $stmt->bindValue(':token', $token);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
     }

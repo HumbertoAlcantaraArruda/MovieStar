@@ -65,7 +65,7 @@ require_once __DIR__ . '/templates/header.php';
                                 <i class="fas fa-pen"></i> Editar
                             </a>
                             <form action="" method="post" class="d-inline"
-                                  onsubmit="return confirm('Excluir este filme? Esta ação não pode ser desfeita.');">
+                                  data-confirm="Excluir este filme? Esta ação não pode ser desfeita.">
                                 <input type="hidden" name="csrf_token" value="<?= $e($session->csrfToken()) ?>">
                                 <input type="hidden" name="id" value="<?= (int) $movie->getId() ?>">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">

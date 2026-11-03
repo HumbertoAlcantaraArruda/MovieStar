@@ -1,0 +1,2 @@
+# Código-fonte das classes: só é carregado via autoload, nunca servido por HTTP (Apache 2.4).
+Require all denied

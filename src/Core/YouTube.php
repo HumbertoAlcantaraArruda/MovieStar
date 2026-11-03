@@ -14,7 +14,8 @@ namespace MovieStar\Core;
  */
 final class YouTube
 {
-    private const VIDEO_ID_PATTERN = '/^[A-Za-z0-9_-]{11}$/';
+    // \z (e não $): o $ aceitaria um "\n" no fim do id (ex.: ?v=ID%0A).
+    private const VIDEO_ID_PATTERN = '/^[A-Za-z0-9_-]{11}\z/';
     private const MAX_URL_LENGTH   = 255;
     private const YOUTUBE_HOSTS    = ['youtube.com', 'www.youtube.com', 'm.youtube.com'];
     private const SHORT_HOSTS      = ['youtu.be', 'www.youtu.be'];

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MovieStar\Controllers;
 
 use MovieStar\Core\Auth;
+use MovieStar\Core\LoginThrottle;
 use MovieStar\Core\Session;
 use MovieStar\Core\UserRules;
 use MovieStar\DAO\UserDAO;
@@ -15,17 +16,30 @@ use MovieStar\Models\User;
  */
 class AuthController
 {
+    /**
+     * Hash bcrypt de uma senha aleatória descartada: quando o e-mail não existe, a senha é conferida
+     * contra ele para que o tempo de resposta não revele quais e-mails estão cadastrados.
+     */
+    private const DUMMY_PASSWORD_HASH = '$2y$10$o2uSAW5K.psVUFKPXkU22.u.qgNr./Ddm6NbMIC3UzRtIBNMw2AAu';
+
     private UserDAO $userDAO;
     private Session $session;
     private Auth $auth;
+    private LoginThrottle $loginThrottle;
     private string $baseUrl;
 
-    public function __construct(UserDAO $userDAO, Session $session, Auth $auth, string $baseUrl)
-    {
-        $this->userDAO = $userDAO;
-        $this->session = $session;
-        $this->auth    = $auth;
-        $this->baseUrl = $baseUrl;
+    public function __construct(
+        UserDAO $userDAO,
+        Session $session,
+        Auth $auth,
+        LoginThrottle $loginThrottle,
+        string $baseUrl
+    ) {
+        $this->userDAO       = $userDAO;
+        $this->session       = $session;
+        $this->auth          = $auth;
+        $this->loginThrottle = $loginThrottle;
+        $this->baseUrl       = $baseUrl;
     }
 
     /**
@@ -35,7 +49,8 @@ class AuthController
     public function handle(): void
     {
         $isPost   = $_SERVER['REQUEST_METHOD'] === 'POST';
-        $isLogout = $isPost && ($_POST['type'] ?? '') === 'logout';
+        $type     = $isPost ? $this->postString('type') : '';
+        $isLogout = $type === 'logout';
 
         if (!$isLogout) {
             $this->auth->requireGuest();
@@ -46,10 +61,12 @@ class AuthController
         }
 
         if (!$this->session->isValidCsrfToken($_POST['csrf_token'] ?? null)) {
-            $this->redirect('auth.php', 'Requisição inválida. Tente novamente.', 'error');
+            // Logout recusado vai para a home: em auth.php o usuário ainda logado seria redirecionado
+            // de novo e a mensagem se perderia no caminho.
+            $this->redirect($isLogout ? '' : 'auth.php', 'Requisição inválida. Tente novamente.', 'error');
         }
 
-        switch ($_POST['type'] ?? '') {
+        switch ($type) {
             case 'register':
                 $this->register();
                 break;
@@ -65,11 +82,12 @@ class AuthController
 
     private function register(): void
     {
-        $name     = trim((string) ($_POST['name'] ?? ''));
-        $lastname = trim((string) ($_POST['lastname'] ?? ''));
-        $email    = trim((string) ($_POST['email'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
-        $confirm  = (string) ($_POST['confirmpassword'] ?? '');
+        $name     = $this->postString('name');
+        $lastname = $this->postString('lastname');
+        $email    = $this->postString('email');
+        // Senhas não passam por trim(): espaços fazem parte da senha.
+        $password = $this->rawPostString('password');
+        $confirm  = $this->rawPostString('confirmpassword');
 
         if ($name === '' || $lastname === '' || $email === '' || $password === '') {
             $this->redirect('auth.php', 'Preencha todos os campos.', 'error');
@@ -104,23 +122,45 @@ class AuthController
 
         $id = $this->userDAO->create($user);
 
-        $this->session->login($id);
+        $this->session->login($id, (string) $user->getToken());
         $this->redirect('', 'Cadastro realizado com sucesso!');
     }
 
     private function login(): void
     {
-        $email    = trim((string) ($_POST['email'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
+        $email    = $this->postString('email');
+        $password = $this->rawPostString('password');
+
+        // Checado antes de qualquer verificação de senha; a mensagem não revela se o e-mail existe.
+        if (!$this->loginThrottle->attempt($email)) {
+            $this->redirect('auth.php', LoginThrottle::blockedMessage(), 'error');
+        }
 
         $user = $email !== '' ? $this->userDAO->findByEmail($email) : null;
+        $hash = $user !== null ? $user->getPassword() : self::DUMMY_PASSWORD_HASH;
 
-        if ($user === null || !password_verify($password, $user->getPassword())) {
+        if (!password_verify($password, $hash) || $user === null) {
             $this->redirect('auth.php', 'E-mail ou senha incorretos.', 'error');
         }
 
-        $this->session->login((int) $user->getId());
+        $this->loginThrottle->clear($email);
+        $this->session->login((int) $user->getId(), (string) $user->getToken());
         $this->redirect('', 'Bem-vindo(a), ' . $user->getName() . '!');
+    }
+
+    /**
+     * Valor de $_POST como string aparada (arrays, ausentes e UTF-8 inválido viram '').
+     */
+    private function postString(string $key): string
+    {
+        return trim($this->rawPostString($key));
+    }
+
+    private function rawPostString(string $key): string
+    {
+        $value = $_POST[$key] ?? '';
+
+        return is_string($value) && mb_check_encoding($value, 'UTF-8') ? $value : '';
     }
 
     /**

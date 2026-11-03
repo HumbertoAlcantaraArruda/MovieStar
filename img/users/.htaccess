@@ -1,0 +1,18 @@
+# Pasta de uploads: só imagens são servidas e nada aqui é executado como script (Apache 2.4).
+Options -Indexes -ExecCGI -Includes -MultiViews
+
+# Desliga o PHP nesta pasta e remove os mapeamentos de script por extensão: com "AddHandler ... .php"
+# no servidor, um arquivo "x.php.jpg" seria executado.
+<IfModule php_module>
+    php_flag engine off
+</IfModule>
+<IfModule php7_module>
+    php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .pht .phar .phps .php3 .php4 .php5 .php7 .php8 .cgi .pl .py .shtml
+RemoveType .php .phtml .pht .phar .phps .php3 .php4 .php5 .php7 .php8
+
+# Só as extensões gravadas pelo ImageUploader (e as imagens padrão) podem ser baixadas.
+<If "%{REQUEST_FILENAME} !~ m#\.(jpe?g|png|webp)$#i">
+    Require all denied
+</If>

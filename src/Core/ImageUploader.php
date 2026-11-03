@@ -16,6 +16,9 @@ class ImageUploader
 {
     public const DEFAULT_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
 
+    /** Largura/altura máximas em pixels: barra imagens pequenas em bytes, mas enormes ao abrir ("pixel flood"). */
+    public const MAX_DIMENSION = 6000;
+
     /** MIME aceito => extensão gravada. */
     private const ALLOWED_TYPES = [
         'image/jpeg' => 'jpg',
@@ -24,7 +27,7 @@ class ImageUploader
     ];
 
     /** Formato dos nomes gerados por esta classe (32 hex + extensão permitida). */
-    private const FILENAME_PATTERN = '/^[a-f0-9]{32}\.(jpg|png|webp)$/';
+    private const FILENAME_PATTERN = '/^[a-f0-9]{32}\.(jpg|png|webp)\z/';
 
     private string $directory;
     private int $maxBytes;
@@ -97,6 +100,10 @@ class ImageUploader
             || $imageInfo[1] <= 0
             || ($imageInfo['mime'] ?? '') !== $mime) {
             throw new UploadException('O arquivo enviado não é uma imagem válida.');
+        }
+
+        if ($imageInfo[0] > self::MAX_DIMENSION || $imageInfo[1] > self::MAX_DIMENSION) {
+            throw new UploadException('A imagem deve ter no máximo ' . self::MAX_DIMENSION . ' x ' . self::MAX_DIMENSION . ' pixels.');
         }
 
         $filename = bin2hex(random_bytes(16)) . '.' . self::ALLOWED_TYPES[$mime];
