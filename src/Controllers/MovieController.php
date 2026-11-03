@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace MovieStar\Controllers;
 
+use MovieStar\Core\Auth;
 use MovieStar\Core\ImageUploader;
 use MovieStar\Core\Session;
 use MovieStar\Core\UploadException;
 use MovieStar\Core\YouTube;
 use MovieStar\DAO\MovieDAO;
 use MovieStar\Models\Movie;
-use MovieStar\Models\User;
 use PDOException;
 
 /**
@@ -25,20 +25,20 @@ class MovieController
     private MovieDAO $movieDAO;
     private ImageUploader $imageUploader;
     private Session $session;
-    private ?User $currentUser;
+    private Auth $auth;
     private string $baseUrl;
 
     public function __construct(
         MovieDAO $movieDAO,
         ImageUploader $imageUploader,
         Session $session,
-        ?User $currentUser,
+        Auth $auth,
         string $baseUrl
     ) {
         $this->movieDAO      = $movieDAO;
         $this->imageUploader = $imageUploader;
         $this->session       = $session;
-        $this->currentUser   = $currentUser;
+        $this->auth          = $auth;
         $this->baseUrl       = $baseUrl;
     }
 
@@ -47,7 +47,7 @@ class MovieController
      */
     public function handle(): void
     {
-        $this->requireLogin();
+        $this->auth->requireLogin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return;
@@ -63,7 +63,7 @@ class MovieController
      */
     public function handleEdit(): Movie
     {
-        $this->requireLogin();
+        $this->auth->requireLogin();
 
         $movie     = $this->loadOwnedMovie();
         $errorPath = 'editmovie.php?id=' . (int) $movie->getId();
@@ -81,7 +81,7 @@ class MovieController
      */
     public function handleDashboard(): void
     {
-        $this->requireLogin();
+        $this->auth->requireLogin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return;
@@ -89,13 +89,6 @@ class MovieController
 
         $this->guardPost('dashboard.php');
         $this->delete();
-    }
-
-    private function requireLogin(): void
-    {
-        if ($this->currentUser === null) {
-            $this->redirect('auth.php', 'Faça login para continuar.', 'error');
-        }
     }
 
     /**
@@ -124,7 +117,7 @@ class MovieController
 
         $movie = $id > 0 ? $this->movieDAO->findById($id) : null;
 
-        if ($movie === null || $movie->getUserId() !== (int) $this->currentUser->getId()) {
+        if ($movie === null || !$this->auth->owns($movie->getUserId())) {
             $this->redirect('dashboard.php', 'Filme não encontrado.', 'error');
         }
 
@@ -134,7 +127,7 @@ class MovieController
     private function create(): void
     {
         $movie = $this->buildMovieFromRequest('newmovie.php');
-        $movie->setUserId((int) $this->currentUser->getId());
+        $movie->setUserId((int) $this->auth->requireLogin()->getId());
 
         // Imagem é opcional: sem capa, as páginas usam Movie::DEFAULT_IMAGE.
         $file = isset($_FILES['image']) && is_array($_FILES['image']) ? $_FILES['image'] : null;

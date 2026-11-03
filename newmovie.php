@@ -9,14 +9,14 @@ require_once __DIR__ . '/bootstrap.php';
 /**
  * @var \MovieStar\DAO\MovieDAO $movieDAO
  * @var \MovieStar\Core\Session $session
- * @var \MovieStar\Models\User|null $currentUser
+ * @var \MovieStar\Core\Auth $auth
  * @var string $baseUrl
  */
 
 $imageUploader = new ImageUploader(__DIR__ . '/img/movies');
 
 // Redireciona para auth.php se não houver login; trata o POST de cadastro.
-(new MovieController($movieDAO, $imageUploader, $session, $currentUser, $baseUrl))->handle();
+(new MovieController($movieDAO, $imageUploader, $session, $auth, $baseUrl))->handle();
 
 require_once __DIR__ . '/templates/header.php';
 ?>

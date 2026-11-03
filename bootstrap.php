@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use MovieStar\Core\Auth;
 use MovieStar\Core\Database;
 use MovieStar\Core\Session;
 use MovieStar\DAO\MovieDAO;
@@ -20,4 +21,11 @@ $pdo      = $database->getConnection();
 $userDAO     = new UserDAO($pdo);
 $movieDAO    = new MovieDAO($pdo);
 $currentUser = $session->getUserId() !== null ? $userDAO->findById($session->getUserId()) : null;
-$flash       = $session->pullFlash();
+
+// Sessão apontando para usuário que não existe mais (ex.: apagado): trata como deslogado.
+if ($currentUser === null && $session->getUserId() !== null) {
+    $session->logout();
+}
+
+$auth  = new Auth($session, $currentUser, $baseUrl);
+$flash = $session->pullFlash();

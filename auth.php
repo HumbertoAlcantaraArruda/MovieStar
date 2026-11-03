@@ -7,10 +7,11 @@ require_once __DIR__ . '/bootstrap.php';
 /**
  * @var \MovieStar\DAO\UserDAO $userDAO
  * @var \MovieStar\Core\Session $session
+ * @var \MovieStar\Core\Auth $auth
  * @var string $baseUrl
  */
 
-(new AuthController($userDAO, $session, $baseUrl))->handle();
+(new AuthController($userDAO, $session, $auth, $baseUrl))->handle();
 
 require_once __DIR__ . '/templates/header.php';
 ?>

@@ -8,14 +8,14 @@ require_once __DIR__ . '/bootstrap.php';
 /**
  * @var \MovieStar\DAO\MovieDAO $movieDAO
  * @var \MovieStar\Core\Session $session
- * @var \MovieStar\Models\User|null $currentUser
+ * @var \MovieStar\Core\Auth $auth
  * @var string $baseUrl
  */
 
 $imageUploader = new ImageUploader(__DIR__ . '/img/movies');
 
 // Exige login e posse do filme (redireciona ao painel se não for o dono); trata o POST de edição.
-$movie = (new MovieController($movieDAO, $imageUploader, $session, $currentUser, $baseUrl))->handleEdit();
+$movie = (new MovieController($movieDAO, $imageUploader, $session, $auth, $baseUrl))->handleEdit();
 
 require_once __DIR__ . '/templates/header.php';
 ?>

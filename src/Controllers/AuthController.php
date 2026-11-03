@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MovieStar\Controllers;
 
+use MovieStar\Core\Auth;
 use MovieStar\Core\Session;
 use MovieStar\DAO\UserDAO;
 use MovieStar\Models\User;
@@ -18,21 +19,31 @@ class AuthController
 
     private UserDAO $userDAO;
     private Session $session;
+    private Auth $auth;
     private string $baseUrl;
 
-    public function __construct(UserDAO $userDAO, Session $session, string $baseUrl)
+    public function __construct(UserDAO $userDAO, Session $session, Auth $auth, string $baseUrl)
     {
         $this->userDAO = $userDAO;
         $this->session = $session;
+        $this->auth    = $auth;
         $this->baseUrl = $baseUrl;
     }
 
     /**
      * Trata o POST recebido (se houver) e redireciona ao final.
+     * Usuário já logado só pode sair; qualquer outro acesso vai para a home.
      */
     public function handle(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        $isPost   = $_SERVER['REQUEST_METHOD'] === 'POST';
+        $isLogout = $isPost && ($_POST['type'] ?? '') === 'logout';
+
+        if (!$isLogout) {
+            $this->auth->requireGuest();
+        }
+
+        if (!$isPost) {
             return;
         }
 

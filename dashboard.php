@@ -8,16 +8,16 @@ require_once __DIR__ . '/bootstrap.php';
 /**
  * @var \MovieStar\DAO\MovieDAO $movieDAO
  * @var \MovieStar\Core\Session $session
- * @var \MovieStar\Models\User|null $currentUser
+ * @var \MovieStar\Core\Auth $auth
  * @var string $baseUrl
  */
 
 $imageUploader = new ImageUploader(__DIR__ . '/img/movies');
 
 // Exige login; trata o POST de exclusão.
-(new MovieController($movieDAO, $imageUploader, $session, $currentUser, $baseUrl))->handleDashboard();
+(new MovieController($movieDAO, $imageUploader, $session, $auth, $baseUrl))->handleDashboard();
 
-$movies = $movieDAO->findByUser((int) $currentUser->getId());
+$movies = $movieDAO->findByUser((int) $auth->requireLogin()->getId());
 
 require_once __DIR__ . '/templates/header.php';
 ?>
