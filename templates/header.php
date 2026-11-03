@@ -37,8 +37,8 @@ $e = static function (string $v): string {
             <i class="fas fa-bars"></i>
         </button>
 
-        <form action="" method="get" id="search-form" class="form-inline my-2 my-lg-0">
-            <input type="text" name="q" id="search" class="form-control mr-sm-2" type="search" placeholder="Buscar Filmes" aria-label="Search">
+        <form action="<?= $e($baseUrl) ?>search.php" method="get" id="search-form" class="form-inline my-2 my-lg-0">
+            <input type="search" name="q" id="search" class="form-control mr-sm-2" placeholder="Buscar Filmes" aria-label="Search" maxlength="100" value="<?= $e($searchTerm ?? '') ?>">
 
             <button class="btn my-2 my-sm-0" type="submit">
                 <i class="fas fa-search"></i>

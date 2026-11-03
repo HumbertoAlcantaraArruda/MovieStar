@@ -114,6 +114,29 @@ class MovieDAO
         return $this->hydrateAll($stmt);
     }
 
+    /**
+     * Busca filmes por título ou descrição (LIKE, case-insensitive pela collation).
+     * Os curingas % e _ do termo são tratados como texto literal.
+     *
+     * @return Movie[]
+     */
+    public function search(string $term, int $limit): array
+    {
+        $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term) . '%';
+
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM movies
+              WHERE title LIKE :title ESCAPE '!' OR description LIKE :description ESCAPE '!'
+              ORDER BY created_at DESC, id DESC LIMIT :limit"
+        );
+        $stmt->bindValue(':title', $pattern);
+        $stmt->bindValue(':description', $pattern);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $this->hydrateAll($stmt);
+    }
+
     private function bindMovie(PDOStatement $stmt, Movie $movie): void
     {
         $stmt->bindValue(':title', $movie->getTitle());
