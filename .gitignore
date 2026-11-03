@@ -3,3 +3,8 @@
 CLAUDE.md
 config/database.php
 ROADMAP.md
+
+# Uploads de capas de filmes (mantém a pasta e a capa padrão)
+img/movies/*
+!img/movies/.gitkeep
+!img/movies/movie_cover.jpg

@@ -49,6 +49,11 @@ $e = static function (string $v): string {
             <ul class="navbar-nav">
 <?php if ($currentUser !== null): ?>
                 <li class="nav-item">
+                    <a href="<?= $e($baseUrl) ?>newmovie.php" class="nav-link">
+                        <i class="fas fa-plus"></i> Incluir filme
+                    </a>
+                </li>
+                <li class="nav-item">
                     <span class="nav-link"><?= $e($currentUser->getFullName()) ?></span>
                 </li>
                 <li class="nav-item">
