@@ -91,6 +91,18 @@ class MovieDAO
     }
 
     /**
+     * Categorias que possuem ao menos um filme cadastrado.
+     *
+     * @return string[]
+     */
+    public function findCategoriesWithMovies(): array
+    {
+        $stmt = $this->pdo->query('SELECT DISTINCT category FROM movies WHERE category IS NOT NULL');
+
+        return array_map('strval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    /**
      * @return Movie[]
      */
     public function findByUser(int $userId): array

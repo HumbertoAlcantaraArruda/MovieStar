@@ -89,6 +89,31 @@
     padding: 40px;
 }
 
+.section-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #333;
+}
+
+/* Card de filme */
+.movie-card {
+    background-color: #121212;
+    border: 1px solid #222;
+    color: #FFF;
+}
+
+.movie-card-img {
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    width: 100%;
+}
+
+.movie-card-rating {
+    color: #F5C518;
+    font-weight: bold;
+}
+
 /* Footer */
 
 #footer {
