@@ -13,6 +13,7 @@ class Session
     private const KEY_AUTH_TOKEN = 'auth_token';
     private const KEY_FLASH      = 'flash';
     private const KEY_CSRF       = 'csrf_token';
+    private const KEY_OLD_INPUT  = 'old_input';
 
     /** Nome próprio do cookie: não colide com o PHPSESSID de outras aplicações no mesmo host. */
     private const SESSION_NAME = 'MOVIESTARSESSID';
@@ -100,6 +101,44 @@ class Session
         unset($_SESSION[self::KEY_FLASH]);
 
         return $flash;
+    }
+
+    /**
+     * Guarda os valores digitados em um formulário para repopulá-lo após um erro de validação
+     * (um único formulário por vez). Só strings; senhas e arquivos nunca devem ser passados.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function setOldInput(string $form, array $data): void
+    {
+        $clean = [];
+
+        foreach ($data as $key => $value) {
+            if (is_string($value)) {
+                $clean[(string) $key] = $value;
+            }
+        }
+
+        $_SESSION[self::KEY_OLD_INPUT] = ['form' => $form, 'data' => $clean];
+    }
+
+    /**
+     * Retorna e remove os valores guardados, se forem do formulário pedido (senão, array vazio e nada é removido).
+     *
+     * @return array<string, string>
+     */
+    public function pullOldInput(string $form): array
+    {
+        $old = $_SESSION[self::KEY_OLD_INPUT] ?? null;
+
+        // Só consome o que é deste formulário: uma página com dois formulários (auth.php) consulta os dois.
+        if (is_array($old) && ($old['form'] ?? null) === $form && is_array($old['data'] ?? null)) {
+            unset($_SESSION[self::KEY_OLD_INPUT]);
+
+            return $old['data'];
+        }
+
+        return [];
     }
 
     public function csrfToken(): string

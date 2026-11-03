@@ -10,6 +10,13 @@
  */
 
 use MovieStar\Models\Movie;
+
+// Valores enviados antes do erro de validação (têm prioridade sobre os do filme); a imagem nunca é repopulada.
+$oldKey = $movie !== null ? 'editmovie.php?id=' . (int) $movie->getId() : 'newmovie.php';
+$old    = $session->pullOldInput($oldKey);
+$value  = static function (string $field, string $fallback) use ($old): string {
+    return $old[$field] ?? $fallback;
+};
 ?>
                 <form action="" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= $e($session->csrfToken()) ?>">
@@ -18,14 +25,14 @@ use MovieStar\Models\Movie;
                         <label for="title">Título:</label>
                         <input type="text" class="form-control" id="title" name="title" maxlength="100" required
                                placeholder="Digite o título do filme"
-                               value="<?= $e($movie !== null ? $movie->getTitle() : '') ?>">
+                               value="<?= $e($value('title', $movie !== null ? $movie->getTitle() : '')) ?>">
                     </div>
 
                     <div class="form-group">
                         <label for="image">Imagem (opcional):</label>
 <?php if ($movie !== null): ?>
                         <div class="mb-2">
-                            <img src="<?= $e($baseUrl) ?>img/movies/<?= $e($movie->getImageOrDefault()) ?>" alt="Capa atual" class="img-thumbnail" style="max-height: 150px;">
+                            <img src="<?= $e($baseUrl) ?>img/movies/<?= $e($movie->getImageOrDefault()) ?>" alt="Capa atual" class="img-thumbnail thumb-preview">
                         </div>
 <?php endif; ?>
                         <input type="file" class="form-control-file" id="image" name="image"
@@ -39,7 +46,7 @@ use MovieStar\Models\Movie;
                             <select class="form-control" id="category" name="category" required>
                                 <option value="">Selecione</option>
 <?php foreach (Movie::CATEGORIES as $category): ?>
-                                <option value="<?= $e($category) ?>"<?= $movie !== null && $movie->getCategory() === $category ? ' selected' : '' ?>><?= $e($category) ?></option>
+                                <option value="<?= $e($category) ?>"<?= $value('category', $movie !== null ? (string) $movie->getCategory() : '') === $category ? ' selected' : '' ?>><?= $e($category) ?></option>
 <?php endforeach; ?>
                             </select>
                         </div>
@@ -47,7 +54,7 @@ use MovieStar\Models\Movie;
                             <label for="length">Duração:</label>
                             <input type="text" class="form-control" id="length" name="length" maxlength="50"
                                    placeholder="Ex.: 2h 10min"
-                                   value="<?= $e($movie !== null ? (string) $movie->getLength() : '') ?>">
+                                   value="<?= $e($value('length', $movie !== null ? (string) $movie->getLength() : '')) ?>">
                         </div>
                     </div>
 
@@ -55,15 +62,15 @@ use MovieStar\Models\Movie;
                         <label for="trailer">Trailer (opcional):</label>
                         <input type="url" class="form-control" id="trailer" name="trailer" maxlength="255"
                                placeholder="https://www.youtube.com/watch?v=..."
-                               value="<?= $e($movie !== null ? (string) $movie->getTrailer() : '') ?>">
+                               value="<?= $e($value('trailer', $movie !== null ? (string) $movie->getTrailer() : '')) ?>">
                         <small class="form-text text-white-50">Link do YouTube (youtube.com/watch, youtu.be ou youtube.com/embed).</small>
                     </div>
 
                     <div class="form-group">
                         <label for="description">Descrição:</label>
                         <textarea class="form-control" id="description" name="description" rows="5" maxlength="5000" required
-                                  placeholder="Descreva o filme"><?= $e($movie !== null ? (string) $movie->getDescription() : '') ?></textarea>
+                                  placeholder="Descreva o filme"><?= $e($value('description', $movie !== null ? (string) $movie->getDescription() : '')) ?></textarea>
                     </div>
 
-                    <input type="submit" class="btn btn-light card-btn" value="<?= $e($submitLabel) ?>">
+                    <button type="submit" class="btn card-btn"><?= $e($submitLabel) ?></button>
                 </form>

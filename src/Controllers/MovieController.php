@@ -279,6 +279,18 @@ class MovieController
     private function redirect(string $path, string $message, string $type = 'success'): void
     {
         $this->session->setFlash($message, $type);
+
+        // Erro no formulário (cadastro/edição): guarda o que foi digitado (o arquivo de imagem não volta).
+        if ($type === 'error' && ($path === 'newmovie.php' || strpos($path, 'editmovie.php') === 0)) {
+            $this->session->setOldInput($path, [
+                'title'       => $this->postString('title'),
+                'category'    => $this->postString('category'),
+                'length'      => $this->postString('length'),
+                'trailer'     => $this->postString('trailer'),
+                'description' => $this->postString('description'),
+            ]);
+        }
+
         header('Location: ' . $this->baseUrl . $path);
         exit;
     }

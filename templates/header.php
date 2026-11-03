@@ -17,7 +17,7 @@ $e = static function (string $v): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+          content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>MovieStar</title>
     <link rel="short icon" href="<?= $e($baseUrl) ?>img/moviestar.ico" />
@@ -27,20 +27,20 @@ $e = static function (string $v): string {
 </head>
 <body>
 <header>
-    <nav id="main-navbar" class="navbar navbar-expand-lg">
+    <nav id="main-navbar" class="navbar navbar-dark navbar-expand-lg">
         <a href="<?= $e($baseUrl) ?>" class="navbar-brand">
             <img src="<?= $e($baseUrl) ?>img/logo.svg" alt="MovieStar" id="logo">
             <span id="moviestar-title">MovieStar</span>
         </a>
 
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-            <i class="fas fa-bars"></i>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Alternar navegação">
+            <span class="navbar-toggler-icon"></span>
         </button>
 
-        <form action="<?= $e($baseUrl) ?>search.php" method="get" id="search-form" class="form-inline my-2 my-lg-0">
-            <input type="search" name="q" id="search" class="form-control mr-sm-2" placeholder="Buscar Filmes" aria-label="Search" maxlength="100" value="<?= $e($searchTerm ?? '') ?>">
+        <form action="<?= $e($baseUrl) ?>search.php" method="get" id="search-form" class="form-inline">
+            <input type="search" name="q" id="search" class="form-control" placeholder="Buscar Filmes" aria-label="Buscar filmes" maxlength="100" value="<?= $e($searchTerm ?? '') ?>">
 
-            <button class="btn my-2 my-sm-0" type="submit">
+            <button class="btn" type="submit" aria-label="Buscar">
                 <i class="fas fa-search"></i>
             </button>
         </form>
@@ -67,7 +67,7 @@ $e = static function (string $v): string {
                     <form action="<?= $e($baseUrl) ?>auth.php" method="post">
                         <input type="hidden" name="type" value="logout">
                         <input type="hidden" name="csrf_token" value="<?= $e($session->csrfToken()) ?>">
-                        <button type="submit" class="btn btn-link nav-link">Sair</button>
+                        <button type="submit" class="btn btn-link nav-link text-left">Sair</button>
                     </form>
                 </li>
 <?php else: ?>

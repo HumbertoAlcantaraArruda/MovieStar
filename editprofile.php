@@ -21,6 +21,8 @@ $imageUploader = new ImageUploader(__DIR__ . '/img/users');
 // Exige login; trata o POST de dados ou de senha.
 $user = (new ProfileController($userDAO, $movieDAO, $reviewDAO, $imageUploader, $session, $auth, $loginThrottle, $baseUrl))->handleEdit();
 
+$old = $session->pullOldInput('editprofile');
+
 require_once __DIR__ . '/templates/header.php';
 ?>
     <div id="main-container" class="container-fluid">
@@ -36,7 +38,7 @@ require_once __DIR__ . '/templates/header.php';
                         <label for="image">Foto (opcional):</label>
                         <div class="mb-2">
                             <img src="<?= $e($baseUrl) ?>img/users/<?= $e($user->getImageOrDefault()) ?>" alt="Foto atual"
-                                 class="img-thumbnail" style="max-height: 150px;">
+                                 class="img-thumbnail thumb-preview">
                         </div>
                         <input type="file" class="form-control-file" id="image" name="image"
                                accept="image/jpeg,image/png,image/webp">
@@ -47,12 +49,12 @@ require_once __DIR__ . '/templates/header.php';
                         <div class="form-group col-md-6">
                             <label for="name">Nome:</label>
                             <input type="text" class="form-control" id="name" name="name" required
-                                   maxlength="<?= UserRules::MAX_FIELD_LENGTH ?>" value="<?= $e($user->getName()) ?>">
+                                   maxlength="<?= UserRules::MAX_FIELD_LENGTH ?>" value="<?= $e($old['name'] ?? $user->getName()) ?>">
                         </div>
                         <div class="form-group col-md-6">
                             <label for="lastname">Sobrenome:</label>
                             <input type="text" class="form-control" id="lastname" name="lastname" required
-                                   maxlength="<?= UserRules::MAX_FIELD_LENGTH ?>" value="<?= $e($user->getLastname()) ?>">
+                                   maxlength="<?= UserRules::MAX_FIELD_LENGTH ?>" value="<?= $e($old['lastname'] ?? $user->getLastname()) ?>">
                         </div>
                     </div>
 
@@ -65,12 +67,12 @@ require_once __DIR__ . '/templates/header.php';
                         <label for="bio">Bio (opcional):</label>
                         <textarea class="form-control" id="bio" name="bio" rows="5"
                                   maxlength="<?= UserRules::MAX_BIO_LENGTH ?>"
-                                  placeholder="Conte um pouco sobre você"><?= $e((string) $user->getBio()) ?></textarea>
+                                  placeholder="Conte um pouco sobre você"><?= $e($old['bio'] ?? (string) $user->getBio()) ?></textarea>
                         <small class="form-text text-white-50">Até <?= UserRules::MAX_BIO_LENGTH ?> caracteres.</small>
                     </div>
 
-                    <button type="submit" class="btn btn-light card-btn">Salvar alterações</button>
-                    <a href="<?= $e($baseUrl) ?>profile.php?id=<?= (int) $user->getId() ?>" class="btn btn-outline-light">Ver perfil</a>
+                    <button type="submit" class="btn card-btn">Salvar alterações</button>
+                    <a href="<?= $e($baseUrl) ?>profile.php?id=<?= (int) $user->getId() ?>" class="btn btn-outline-light ml-1">Ver perfil</a>
                 </form>
 
                 <h2 class="h4">Alterar senha</h2>
@@ -81,21 +83,21 @@ require_once __DIR__ . '/templates/header.php';
                     <div class="form-group">
                         <label for="current_password">Senha atual:</label>
                         <input type="password" class="form-control" id="current_password" name="current_password"
-                               required autocomplete="current-password">
+                               required maxlength="<?= UserRules::MAX_PASSWORD_LENGTH ?>" autocomplete="current-password">
                     </div>
                     <div class="form-group">
                         <label for="password">Nova senha:</label>
                         <input type="password" class="form-control" id="password" name="password" required
-                               minlength="<?= UserRules::MIN_PASSWORD_LENGTH ?>" autocomplete="new-password">
-                        <small class="form-text text-white-50">Mínimo de <?= UserRules::MIN_PASSWORD_LENGTH ?> caracteres.</small>
+                               minlength="<?= UserRules::MIN_PASSWORD_LENGTH ?>" maxlength="<?= UserRules::MAX_PASSWORD_LENGTH ?>" autocomplete="new-password">
+                        <small class="form-text text-white-50">De <?= UserRules::MIN_PASSWORD_LENGTH ?> a <?= UserRules::MAX_PASSWORD_LENGTH ?> caracteres.</small>
                     </div>
                     <div class="form-group">
                         <label for="confirmpassword">Confirme a nova senha:</label>
                         <input type="password" class="form-control" id="confirmpassword" name="confirmpassword"
-                               required autocomplete="new-password">
+                               required maxlength="<?= UserRules::MAX_PASSWORD_LENGTH ?>" autocomplete="new-password">
                     </div>
 
-                    <button type="submit" class="btn btn-light card-btn">Alterar senha</button>
+                    <button type="submit" class="btn card-btn">Alterar senha</button>
                 </form>
             </div>
         </div>

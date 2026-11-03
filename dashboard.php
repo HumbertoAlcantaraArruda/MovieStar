@@ -29,7 +29,7 @@ require_once __DIR__ . '/templates/header.php';
     <div id="main-container" class="container-fluid">
         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
             <h1 class="mb-0">Meus filmes</h1>
-            <a href="<?= $e($baseUrl) ?>newmovie.php" class="btn btn-light card-btn">
+            <a href="<?= $e($baseUrl) ?>newmovie.php" class="btn card-btn my-1">
                 <i class="fas fa-plus"></i> Incluir filme
             </a>
         </div>
@@ -41,7 +41,7 @@ require_once __DIR__ . '/templates/header.php';
         </p>
 <?php else: ?>
         <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle">
+            <table class="table table-dark table-hover dashboard-table">
                 <thead>
                     <tr>
                         <th scope="col">Capa</th>
@@ -55,7 +55,7 @@ require_once __DIR__ . '/templates/header.php';
                     <tr>
                         <td>
                             <img src="<?= $e($baseUrl) ?>img/movies/<?= $e($movie->getImageOrDefault()) ?>"
-                                 alt="Capa de <?= $e($movie->getTitle()) ?>" style="width: 60px; height: 80px; object-fit: cover;">
+                                 alt="Capa de <?= $e($movie->getTitle()) ?>" class="dashboard-thumb">
                         </td>
                         <td><?= $e($movie->getTitle()) ?></td>
                         <td><?= $e((string) $movie->getCategory()) ?></td>

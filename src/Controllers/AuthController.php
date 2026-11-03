@@ -20,6 +20,8 @@ class AuthController
      * Hash bcrypt de uma senha aleatória descartada: quando o e-mail não existe, a senha é conferida
      * contra ele para que o tempo de resposta não revele quais e-mails estão cadastrados.
      */
+    public const MAX_EMAIL_LENGTH = 191;
+
     private const DUMMY_PASSWORD_HASH = '$2y$10$o2uSAW5K.psVUFKPXkU22.u.qgNr./Ddm6NbMIC3UzRtIBNMw2AAu';
 
     private UserDAO $userDAO;
@@ -99,7 +101,7 @@ class AuthController
             $this->redirect('auth.php', $nameError, 'error');
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 191) {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > self::MAX_EMAIL_LENGTH) {
             $this->redirect('auth.php', 'Informe um e-mail válido.', 'error');
         }
 
@@ -164,11 +166,35 @@ class AuthController
     }
 
     /**
+     * Em erro de validação em auth.php, guarda e-mail/nome/sobrenome para repopular o formulário
+     * (senhas nunca são guardadas). A chave é "auth_login" ou "auth_register".
+     */
+    private function rememberInput(string $path, string $type): void
+    {
+        $form = $this->postString('type');
+
+        if ($type !== 'error' || $path !== 'auth.php') {
+            return;
+        }
+
+        if ($form === 'register') {
+            $this->session->setOldInput('auth_register', [
+                'email'    => $this->postString('email'),
+                'name'     => $this->postString('name'),
+                'lastname' => $this->postString('lastname'),
+            ]);
+        } elseif ($form === 'login') {
+            $this->session->setOldInput('auth_login', ['email' => $this->postString('email')]);
+        }
+    }
+
+    /**
      * @return never
      */
     private function redirect(string $path, string $message, string $type = 'success'): void
     {
         $this->session->setFlash($message, $type);
+        $this->rememberInput($path, $type);
         header('Location: ' . $this->baseUrl . $path);
         exit;
     }

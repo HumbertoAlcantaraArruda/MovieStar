@@ -243,6 +243,16 @@ class ProfileController
     private function redirect(string $path, string $message, string $type = 'success'): void
     {
         $this->session->setFlash($message, $type);
+
+        // Erro no formulário de dados: guarda nome, sobrenome e bio (a foto e as senhas nunca voltam).
+        if ($type === 'error' && $path === self::EDIT_PATH && $this->postString('type') === 'profile') {
+            $this->session->setOldInput('editprofile', [
+                'name'     => $this->postString('name'),
+                'lastname' => $this->postString('lastname'),
+                'bio'      => $this->postString('bio'),
+            ]);
+        }
+
         header('Location: ' . $this->baseUrl . $path);
         exit;
     }

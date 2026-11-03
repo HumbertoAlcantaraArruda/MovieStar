@@ -19,6 +19,9 @@ require_once __DIR__ . '/bootstrap.php';
 // POST: grava a avaliação e redireciona (nada é exibido daqui para baixo).
 (new ReviewController($movieDAO, $reviewDAO, $session, $auth, $baseUrl))->handle();
 
+// Nota e comentário enviados antes de um erro de validação (repopulam o formulário de avaliação).
+$oldReview = $session->pullOldInput('review');
+
 // Responde 404 (sem redirecionar) quando o id é inválido ou o filme não existe.
 $page = (new MoviePageController($movieDAO, $userDAO, $reviewDAO, $auth))->handleShow();
 
@@ -108,12 +111,12 @@ require_once __DIR__ . '/templates/header.php';
                 <input type="hidden" name="csrf_token" value="<?= $e($session->csrfToken()) ?>">
                 <h3 class="h5">Avalie este filme</h3>
                 <div class="form-row">
-                    <div class="form-group col-12 col-sm-4 col-md-3">
+                    <div class="form-group col-12 col-sm-6 col-md-3">
                         <label for="rating">Nota</label>
                         <select name="rating" id="rating" class="form-control" required>
                             <option value="">Selecione</option>
 <?php for ($n = Review::MAX_RATING; $n >= Review::MIN_RATING; $n--): ?>
-                            <option value="<?= $n ?>"><?= $n ?></option>
+                            <option value="<?= $n ?>"<?= ($oldReview['rating'] ?? '') === (string) $n ? ' selected' : '' ?>><?= $n ?></option>
 <?php endfor; ?>
                         </select>
                     </div>
@@ -122,10 +125,10 @@ require_once __DIR__ . '/templates/header.php';
                     <label for="review">Comentário <span class="text-white-50 small">(opcional)</span></label>
                     <textarea name="review" id="review" class="form-control" rows="4"
                               maxlength="<?= ReviewController::MAX_REVIEW_LENGTH ?>"
-                              placeholder="O que você achou do filme?"></textarea>
+                              placeholder="O que você achou do filme?"><?= $e($oldReview['review'] ?? '') ?></textarea>
                     <small class="form-text text-white-50">Até <?= ReviewController::MAX_REVIEW_LENGTH ?> caracteres.</small>
                 </div>
-                <button type="submit" class="btn btn-light">
+                <button type="submit" class="btn card-btn">
                     <i class="fas fa-paper-plane"></i> Enviar avaliação
                 </button>
             </form>

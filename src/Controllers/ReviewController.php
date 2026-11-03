@@ -147,6 +147,17 @@ class ReviewController
     private function redirect(string $path, string $message, string $type = 'success'): void
     {
         $this->session->setFlash($message, $type);
+
+        // Erro na avaliação: guarda nota e comentário para repopular o formulário.
+        if ($type === 'error' && strpos($path, 'movie.php?id=') === 0) {
+            $rating  = $_POST['rating'] ?? '';
+            $comment = $_POST['review'] ?? '';
+            $this->session->setOldInput('review', [
+                'rating'  => is_string($rating) ? $rating : '',
+                'review'  => is_string($comment) && mb_check_encoding($comment, 'UTF-8') ? $comment : '',
+            ]);
+        }
+
         header('Location: ' . $this->baseUrl . $path);
         exit;
     }

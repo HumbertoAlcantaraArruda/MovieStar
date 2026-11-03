@@ -37,7 +37,7 @@ require_once __DIR__ . '/templates/header.php';
         <div class="row mb-4">
             <div class="col-12 col-md-3 col-lg-2 mb-3 text-center text-md-left">
                 <img src="<?= $e($baseUrl) ?>img/users/<?= $e($profile->getImageOrDefault()) ?>"
-                     class="img-fluid rounded-circle" style="max-width: 160px;"
+                     class="img-fluid rounded-circle profile-photo"
                      alt="Foto de <?= $e($profile->getFullName()) ?>">
             </div>
             <div class="col-12 col-md-9 col-lg-10">
