@@ -96,8 +96,9 @@
     border-bottom: 1px solid #333;
 }
 
-/* Card de filme */
-.movie-card {
+/* Card de filme e de avaliação */
+.movie-card,
+.review-card {
     background-color: #121212;
     border: 1px solid #222;
     color: #FFF;

@@ -6,6 +6,7 @@ use MovieStar\Core\Auth;
 use MovieStar\Core\Database;
 use MovieStar\Core\Session;
 use MovieStar\DAO\MovieDAO;
+use MovieStar\DAO\ReviewDAO;
 use MovieStar\DAO\UserDAO;
 
 require_once __DIR__ . '/autoload.php';
@@ -20,6 +21,7 @@ $pdo      = $database->getConnection();
 
 $userDAO     = new UserDAO($pdo);
 $movieDAO    = new MovieDAO($pdo);
+$reviewDAO   = new ReviewDAO($pdo);
 $currentUser = $session->getUserId() !== null ? $userDAO->findById($session->getUserId()) : null;
 
 // Sessão apontando para usuário que não existe mais (ex.: apagado): trata como deslogado.

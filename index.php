@@ -6,6 +6,7 @@ use MovieStar\Models\Movie;
 require_once __DIR__ . '/bootstrap.php';
 /**
  * @var \MovieStar\DAO\MovieDAO $movieDAO
+ * @var \MovieStar\DAO\ReviewDAO $reviewDAO
  * @var \MovieStar\Models\User|null $currentUser
  * @var string $baseUrl
  */
@@ -25,6 +26,13 @@ if (count($latestMovies) > 0) {
         }
     }
 }
+
+// Médias de todos os filmes exibidos em uma única consulta (id => média).
+$movieIds = [];
+foreach (array_merge($latestMovies, ...array_values($moviesByCategory)) as $movie) {
+    $movieIds[] = (int) $movie->getId();
+}
+$ratings = $reviewDAO->getAverageRatings($movieIds);
 
 require_once __DIR__ . '/templates/header.php';
 ?>
@@ -48,6 +56,7 @@ require_once __DIR__ . '/templates/header.php';
         <h2 class="section-title">Filmes novos</h2>
         <div class="row">
 <?php foreach ($latestMovies as $movie): ?>
+<?php $rating = $ratings[(int) $movie->getId()] ?? null; ?>
 <?php include __DIR__ . '/templates/movie_card.php'; ?>
 <?php endforeach; ?>
         </div>
@@ -58,6 +67,7 @@ require_once __DIR__ . '/templates/header.php';
         <h2 class="section-title"><?= $e((string) $category) ?></h2>
         <div class="row">
 <?php foreach ($categoryMovies as $movie): ?>
+<?php $rating = $ratings[(int) $movie->getId()] ?? null; ?>
 <?php include __DIR__ . '/templates/movie_card.php'; ?>
 <?php endforeach; ?>
         </div>

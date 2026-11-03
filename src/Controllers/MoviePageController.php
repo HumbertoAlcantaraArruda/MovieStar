@@ -7,8 +7,10 @@ namespace MovieStar\Controllers;
 use MovieStar\Core\Auth;
 use MovieStar\Core\YouTube;
 use MovieStar\DAO\MovieDAO;
+use MovieStar\DAO\ReviewDAO;
 use MovieStar\DAO\UserDAO;
 use MovieStar\Models\Movie;
+use MovieStar\Models\Review;
 use MovieStar\Models\User;
 
 /**
@@ -18,20 +20,34 @@ class MoviePageController
 {
     private MovieDAO $movieDAO;
     private UserDAO $userDAO;
+    private ReviewDAO $reviewDAO;
     private Auth $auth;
 
-    public function __construct(MovieDAO $movieDAO, UserDAO $userDAO, Auth $auth)
+    public function __construct(MovieDAO $movieDAO, UserDAO $userDAO, ReviewDAO $reviewDAO, Auth $auth)
     {
-        $this->movieDAO = $movieDAO;
-        $this->userDAO  = $userDAO;
-        $this->auth     = $auth;
+        $this->movieDAO  = $movieDAO;
+        $this->userDAO   = $userDAO;
+        $this->reviewDAO = $reviewDAO;
+        $this->auth      = $auth;
     }
 
     /**
      * Valida o id e carrega o filme. Em caso de id inválido ou filme inexistente,
      * responde HTTP 404 e retorna null (a página exibe a mensagem amigável).
      *
-     * @return array{movie: Movie, author: ?User, trailerUrl: ?string, isOwner: bool}|null
+     * "canReview" indica se o formulário de avaliação deve ser exibido
+     * (logado, não é o dono e ainda não avaliou).
+     *
+     * @return array{
+     *     movie: Movie,
+     *     author: ?User,
+     *     trailerUrl: ?string,
+     *     isOwner: bool,
+     *     reviews: Review[],
+     *     averageRating: ?float,
+     *     hasReviewed: bool,
+     *     canReview: bool
+     * }|null
      */
     public function handleShow(): ?array
     {
@@ -44,11 +60,20 @@ class MoviePageController
             return null;
         }
 
+        $movieId     = (int) $movie->getId();
+        $user        = $this->auth->getUser();
+        $isOwner     = $this->auth->owns($movie->getUserId());
+        $hasReviewed = $user !== null && $this->reviewDAO->hasUserReviewed((int) $user->getId(), $movieId);
+
         return [
-            'movie'      => $movie,
-            'author'     => $this->userDAO->findById($movie->getUserId()),
-            'trailerUrl' => $this->safeTrailerUrl($movie->getTrailer()),
-            'isOwner'    => $this->auth->owns($movie->getUserId()),
+            'movie'         => $movie,
+            'author'        => $this->userDAO->findById($movie->getUserId()),
+            'trailerUrl'    => $this->safeTrailerUrl($movie->getTrailer()),
+            'isOwner'       => $isOwner,
+            'reviews'       => $this->reviewDAO->findByMovie($movieId),
+            'averageRating' => $this->reviewDAO->getAverageRating($movieId),
+            'hasReviewed'   => $hasReviewed,
+            'canReview'     => $user !== null && !$isOwner && !$hasReviewed,
         ];
     }
 
