@@ -76,7 +76,7 @@ CREATE TABLE reviews (
 ```
 
 
-3. Configure as credenciais em `db.php` se necessario (padrao: `root` sem senha).
+3. Copie `config/database.example.php` para `config/database.php` e ajuste as credenciais se necessario (padrao: `root` sem senha). O arquivo `config/database.php` nao e versionado.
 
 4. Inicie o Apache e o MySQL pelo painel do WAMP (icone verde na bandeja do sistema).
 
