@@ -161,3 +161,10 @@
 #footer-links-container {
     margin: 30px 0;
 }
+
+/* Página do filme */
+.movie-page-cover {
+    max-height: 480px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+}
