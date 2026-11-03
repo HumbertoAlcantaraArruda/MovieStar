@@ -9,7 +9,7 @@ Aplicação web para catálogo, busca e avaliação de filmes desenvolvido com P
 - **Bootstrap 4**
 - **Font Awesome 7**
 - **jQuery**
-- **XAMPP** (ambiente local)
+- **WAMP** (ambiente local)
 
 ## Funcionalidades
 Em desenvolvimento...
@@ -21,14 +21,14 @@ Em desenvolvimento...
 
 ### Pre-requisitos
 
-- XAMPP (Apache + MySQL)
+- WAMP (Apache + MySQL)
 - PHP 7.4+
 
 ### Instalacao
 
-1. Clone o repositorio dentro da pasta `htdocs` do XAMPP:
+1. Clone o repositorio dentro da pasta `www` do WAMP:
    ```bash
-   git clone <url-do-repositorio> C:/xampp/htdocs/curso_php/MovieStar
+   git clone <url-do-repositorio> C:/wamp64/www/MovieStar
    ```
 
 2. Crie o banco de dados no MySQL:
@@ -78,11 +78,11 @@ CREATE TABLE reviews (
 
 3. Configure as credenciais em `db.php` se necessario (padrao: `root` sem senha).
 
-4. Inicie o Apache e o MySQL pelo painel do XAMPP.
+4. Inicie o Apache e o MySQL pelo painel do WAMP (icone verde na bandeja do sistema).
 
 5. Acesse no navegador:
    ```
-   http://localhost/curso_php/MovieStar/
+   http://localhost/MovieStar/
    ```
 
 ## Banco de Dados
