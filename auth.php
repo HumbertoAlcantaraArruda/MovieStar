@@ -1,5 +1,18 @@
 <?php
-require_once("templates/header.php");
+declare(strict_types=1);
+
+use MovieStar\Controllers\AuthController;
+
+require_once __DIR__ . '/bootstrap.php';
+/**
+ * @var \MovieStar\DAO\UserDAO $userDAO
+ * @var \MovieStar\Core\Session $session
+ * @var string $baseUrl
+ */
+
+(new AuthController($userDAO, $session, $baseUrl))->handle();
+
+require_once __DIR__ . '/templates/header.php';
 ?>
     <div id="main-container" class="container-fluid">
         <div class="col-md-12">
@@ -9,6 +22,7 @@ require_once("templates/header.php");
                     <h2>Entrar</h2>
                     <form action="" method="post">
                         <input type="hidden" name="type" value="login">
+                        <input type="hidden" name="csrf_token" value="<?= $e($session->csrfToken()) ?>">
                         <div class="form-group">
                             <label for="email">E-mail:</label>
                             <input type="email" class="form-control" id="email" name="email" placeholder="Digite seu e-mail">
@@ -25,6 +39,7 @@ require_once("templates/header.php");
                     <h2>Criar Conta</h2>
                     <form action="" method="post">
                         <input type="hidden" name="type" value="register">
+                        <input type="hidden" name="csrf_token" value="<?= $e($session->csrfToken()) ?>">
                         <div class="form-group">
                             <label for="email">E-mail:</label>
                             <input type="email" class="form-control" id="email" name="email" placeholder="Digite seu e-mail">
@@ -53,5 +68,4 @@ require_once("templates/header.php");
     </div>
 
 <?php
-require_once("templates/footer.php");
-?><?php
+require_once __DIR__ . '/templates/footer.php';
