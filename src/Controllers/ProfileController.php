@@ -6,6 +6,7 @@ namespace MovieStar\Controllers;
 
 use MovieStar\Core\Auth;
 use MovieStar\Core\ImageUploader;
+use MovieStar\Core\Pagination;
 use MovieStar\Core\Session;
 use MovieStar\Core\UploadException;
 use MovieStar\Core\UserRules;
@@ -22,6 +23,7 @@ use PDOException;
 class ProfileController
 {
     private const EDIT_PATH = 'editprofile.php';
+    private const MOVIES_PER_PAGE = 12;
 
     private UserDAO $userDAO;
     private MovieDAO $movieDAO;
@@ -84,7 +86,7 @@ class ProfileController
     /**
      * Dados do perfil público (profile.php?id=). Id inválido ou inexistente: responde 404 e retorna null.
      *
-     * @return array{profile: User, movies: Movie[], ratings: array<int, float>, isOwner: bool}|null
+     * @return array{profile: User, movies: Movie[], pagination: Pagination, ratings: array<int, float>, isOwner: bool}|null
      */
     public function handleShow(): ?array
     {
@@ -97,7 +99,9 @@ class ProfileController
             return null;
         }
 
-        $movies   = $this->movieDAO->findByUser((int) $profile->getId());
+        $profileId  = (int) $profile->getId();
+        $pagination = new Pagination($this->movieDAO->countByUser($profileId), self::MOVIES_PER_PAGE);
+        $movies     = $this->movieDAO->findByUser($profileId, self::MOVIES_PER_PAGE, $pagination->getOffset());
         $movieIds = [];
 
         foreach ($movies as $movie) {
@@ -107,6 +111,7 @@ class ProfileController
         return [
             'profile' => $profile,
             'movies'  => $movies,
+            'pagination' => $pagination,
             'ratings' => $this->reviewDAO->getAverageRatings($movieIds),
             'isOwner' => $this->auth->owns($profile->getId()),
         ];

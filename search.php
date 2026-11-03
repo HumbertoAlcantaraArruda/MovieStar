@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+use MovieStar\Core\Pagination;
+
 require_once __DIR__ . '/bootstrap.php';
 /**
  * @var \MovieStar\DAO\MovieDAO $movieDAO
@@ -8,7 +10,7 @@ require_once __DIR__ . '/bootstrap.php';
  * @var string $baseUrl
  */
 
-const SEARCH_RESULT_LIMIT = 48;
+const SEARCH_PER_PAGE = 12;
 const SEARCH_MAX_LENGTH = 100;
 
 $rawTerm = $_GET['q'] ?? '';
@@ -20,7 +22,8 @@ if (mb_strlen($searchTerm, 'UTF-8') > SEARCH_MAX_LENGTH) {
 $results = [];
 $ratings = [];
 if ($searchTerm !== '') {
-    $results = $movieDAO->search($searchTerm, SEARCH_RESULT_LIMIT);
+    $pagination = new Pagination($movieDAO->countSearch($searchTerm), SEARCH_PER_PAGE);
+    $results = $movieDAO->search($searchTerm, SEARCH_PER_PAGE, $pagination->getOffset());
     $movieIds = [];
     foreach ($results as $movie) {
         $movieIds[] = (int) $movie->getId();
@@ -53,6 +56,7 @@ require_once __DIR__ . '/templates/header.php';
 <?php include __DIR__ . '/templates/movie_card.php'; ?>
 <?php endforeach; ?>
         </div>
+<?php $paginationParams = ['q' => $searchTerm]; include __DIR__ . '/templates/pagination.php'; ?>
     </section>
 <?php endif; ?>
 </div>

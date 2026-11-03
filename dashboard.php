@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use MovieStar\Controllers\MovieController;
 use MovieStar\Core\ImageUploader;
+use MovieStar\Core\Pagination;
 
 require_once __DIR__ . '/bootstrap.php';
 /**
@@ -17,7 +18,11 @@ $imageUploader = new ImageUploader(__DIR__ . '/img/movies');
 // Exige login; trata o POST de exclusão.
 (new MovieController($movieDAO, $imageUploader, $session, $auth, $baseUrl))->handleDashboard();
 
-$movies = $movieDAO->findByUser((int) $auth->requireLogin()->getId());
+const DASHBOARD_PER_PAGE = 10;
+
+$userId     = (int) $auth->requireLogin()->getId();
+$pagination = new Pagination($movieDAO->countByUser($userId), DASHBOARD_PER_PAGE);
+$movies     = $movieDAO->findByUser($userId, DASHBOARD_PER_PAGE, $pagination->getOffset());
 
 require_once __DIR__ . '/templates/header.php';
 ?>
@@ -73,6 +78,7 @@ require_once __DIR__ . '/templates/header.php';
                 </tbody>
             </table>
         </div>
+<?php include __DIR__ . '/templates/pagination.php'; ?>
 <?php endif; ?>
     </div>
 

@@ -66,6 +66,7 @@ require_once __DIR__ . '/templates/header.php';
 <?php require __DIR__ . '/templates/movie_card.php'; ?>
 <?php endforeach; ?>
         </div>
+<?php $pagination = $page['pagination']; $paginationParams = ['id' => (int) $profile->getId()]; include __DIR__ . '/templates/pagination.php'; ?>
 <?php endif; ?>
 <?php endif; ?>
     </div>

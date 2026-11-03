@@ -66,13 +66,21 @@ class MovieDAO
     /**
      * @return Movie[]
      */
-    public function findLatest(int $limit): array
+    public function findLatest(int $limit, int $offset = 0): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM movies ORDER BY created_at DESC, id DESC LIMIT :limit');
+        $stmt = $this->pdo->prepare(
+            'SELECT * FROM movies ORDER BY created_at DESC, id DESC LIMIT :limit OFFSET :offset'
+        );
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
         return $this->hydrateAll($stmt);
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->pdo->query('SELECT COUNT(*) FROM movies')->fetchColumn();
     }
 
     /**
@@ -103,15 +111,35 @@ class MovieDAO
     }
 
     /**
+     * Filmes do usuário; sem $limit retorna todos.
+     *
      * @return Movie[]
      */
-    public function findByUser(int $userId): array
+    public function findByUser(int $userId, ?int $limit = null, int $offset = 0): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM movies WHERE users_id = :users_id ORDER BY created_at DESC, id DESC');
+        $sql = 'SELECT * FROM movies WHERE users_id = :users_id ORDER BY created_at DESC, id DESC';
+        if ($limit !== null) {
+            $sql .= ' LIMIT :limit OFFSET :offset';
+        }
+
+        $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':users_id', $userId, PDO::PARAM_INT);
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        }
         $stmt->execute();
 
         return $this->hydrateAll($stmt);
+    }
+
+    public function countByUser(int $userId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM movies WHERE users_id = :users_id');
+        $stmt->bindValue(':users_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn();
     }
 
     /**
@@ -120,21 +148,38 @@ class MovieDAO
      *
      * @return Movie[]
      */
-    public function search(string $term, int $limit): array
+    public function search(string $term, int $limit, int $offset = 0): array
     {
-        $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term) . '%';
-
         $stmt = $this->pdo->prepare(
             "SELECT * FROM movies
               WHERE title LIKE :title ESCAPE '!' OR description LIKE :description ESCAPE '!'
-              ORDER BY created_at DESC, id DESC LIMIT :limit"
+              ORDER BY created_at DESC, id DESC LIMIT :limit OFFSET :offset"
         );
-        $stmt->bindValue(':title', $pattern);
-        $stmt->bindValue(':description', $pattern);
+        $this->bindLike($stmt, $term);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
         return $this->hydrateAll($stmt);
+    }
+
+    public function countSearch(string $term): int
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM movies
+              WHERE title LIKE :title ESCAPE '!' OR description LIKE :description ESCAPE '!'"
+        );
+        $this->bindLike($stmt, $term);
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    private function bindLike(PDOStatement $stmt, string $term): void
+    {
+        $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term) . '%';
+        $stmt->bindValue(':title', $pattern);
+        $stmt->bindValue(':description', $pattern);
     }
 
     private function bindMovie(PDOStatement $stmt, Movie $movie): void

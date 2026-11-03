@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use MovieStar\Core\Pagination;
 use MovieStar\Models\Movie;
 
 require_once __DIR__ . '/bootstrap.php';
@@ -11,10 +12,11 @@ require_once __DIR__ . '/bootstrap.php';
  * @var string $baseUrl
  */
 
-const HOME_LATEST_LIMIT = 8;
+const HOME_LATEST_PER_PAGE = 8;
 const HOME_CATEGORY_LIMIT = 4;
 
-$latestMovies = $movieDAO->findLatest(HOME_LATEST_LIMIT);
+$pagination   = new Pagination($movieDAO->countAll(), HOME_LATEST_PER_PAGE);
+$latestMovies = $movieDAO->findLatest(HOME_LATEST_PER_PAGE, $pagination->getOffset());
 
 // Apenas categorias com filmes (na ordem fixa de Movie::CATEGORIES).
 $moviesByCategory = [];
@@ -60,6 +62,7 @@ require_once __DIR__ . '/templates/header.php';
 <?php include __DIR__ . '/templates/movie_card.php'; ?>
 <?php endforeach; ?>
         </div>
+<?php include __DIR__ . '/templates/pagination.php'; ?>
     </section>
 
 <?php foreach ($moviesByCategory as $category => $categoryMovies): ?>
