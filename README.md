@@ -36,51 +36,16 @@ Em desenvolvimento...
    CREATE DATABASE moviestar;
    ```
 
-## 3. Crie as tabelas
+3. Crie as tabelas importando o arquivo `database/schema.sql` no banco `moviestar`, pelo phpMyAdmin (aba Importar) ou pela linha de comando:
+   ```bash
+   mysql -uroot moviestar < database/schema.sql
+   ```
 
-```sql
-CREATE TABLE users (
-    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    lastname VARCHAR(100),
-    email VARCHAR(200),
-    password VARCHAR(200),
-    image VARCHAR(200),
-    token VARCHAR(200),
-    bio TEXT
-);
-```
-```sql
-CREATE TABLE movies (
-    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(100),
-    description TEXT,
-    image VARCHAR(200),
-    trailer VARCHAR(150),
-    category VARCHAR(50),
-    length VARCHAR(50),
-    users_id INT(11) UNSIGNED,
-    FOREIGN KEY(users_id) REFERENCES users(id)
-);
-```
-```sql
-CREATE TABLE reviews (
-    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    rating INT,
-    review TEXT,
-    users_id INT(11) UNSIGNED,
-    movies_id INT(11) UNSIGNED,
-    FOREIGN KEY (users_id) REFERENCES users(id),
-    FOREIGN KEY (movies_id) REFERENCES movies(id)
-);
-```
+4. Copie `config/database.example.php` para `config/database.php` e ajuste as credenciais se necessario (padrao: `root` sem senha). O arquivo `config/database.php` nao e versionado.
 
+5. Inicie o Apache e o MySQL pelo painel do WAMP (icone verde na bandeja do sistema).
 
-3. Copie `config/database.example.php` para `config/database.php` e ajuste as credenciais se necessario (padrao: `root` sem senha). O arquivo `config/database.php` nao e versionado.
-
-4. Inicie o Apache e o MySQL pelo painel do WAMP (icone verde na bandeja do sistema).
-
-5. Acesse no navegador:
+6. Acesse no navegador:
    ```
    http://localhost/MovieStar/
    ```

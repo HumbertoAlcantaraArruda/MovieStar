@@ -70,7 +70,7 @@ class AuthController
             $this->redirect('auth.php', 'Nome ou sobrenome muito longo.', 'error');
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 200) {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 191) {
             $this->redirect('auth.php', 'Informe um e-mail válido.', 'error');
         }
 
