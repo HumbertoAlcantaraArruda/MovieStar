@@ -14,7 +14,7 @@
     </div>
     <div id="footer-links-container">
         <ul>
-            <li><a href="#">Adicionar Filme</a></li>
+            <li><a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>newmovie.php">Adicionar Filme</a></li>
             <li><a href="#">Adicionar Crítica</a></li>
             <li><a href="#">Entrar / Registrar</a></li>
         </ul>

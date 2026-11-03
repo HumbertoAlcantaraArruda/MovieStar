@@ -14,7 +14,7 @@ use MovieStar\Models\User;
 use PDOException;
 
 /**
- * Processa o cadastro de filmes (exige usuário logado).
+ * Processa cadastro, edição e exclusão de filmes (exige usuário logado; só o dono altera).
  */
 class MovieController
 {
@@ -43,28 +43,92 @@ class MovieController
     }
 
     /**
-     * Exige login (em GET e POST) e trata o POST de criação, redirecionando ao final.
+     * Página de cadastro: exige login e trata o POST de criação, redirecionando ao final.
      */
     public function handle(): void
     {
-        if ($this->currentUser === null) {
-            $this->redirect('auth.php', 'Faça login para continuar.', 'error');
-        }
+        $this->requireLogin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return;
         }
 
+        $this->guardPost('newmovie.php');
+        $this->create();
+    }
+
+    /**
+     * Página de edição: exige login e um filme existente do usuário (GET e POST).
+     * Trata o POST de atualização e, em GET, devolve o filme para preencher o formulário.
+     */
+    public function handleEdit(): Movie
+    {
+        $this->requireLogin();
+
+        $movie     = $this->loadOwnedMovie();
+        $errorPath = 'editmovie.php?id=' . (int) $movie->getId();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->guardPost($errorPath);
+            $this->update($movie, $errorPath);
+        }
+
+        return $movie;
+    }
+
+    /**
+     * Painel do usuário: exige login e trata o POST de exclusão.
+     */
+    public function handleDashboard(): void
+    {
+        $this->requireLogin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return;
+        }
+
+        $this->guardPost('dashboard.php');
+        $this->delete();
+    }
+
+    private function requireLogin(): void
+    {
+        if ($this->currentUser === null) {
+            $this->redirect('auth.php', 'Faça login para continuar.', 'error');
+        }
+    }
+
+    /**
+     * Valida tamanho do corpo e token CSRF de um POST.
+     */
+    private function guardPost(string $errorPath): void
+    {
         // Corpo maior que post_max_size: o PHP descarta $_POST e $_FILES inteiros.
         if (empty($_POST) && empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
-            $this->redirect('newmovie.php', 'O envio excede o tamanho máximo permitido.', 'error');
+            $this->redirect($errorPath, 'O envio excede o tamanho máximo permitido.', 'error');
         }
 
         if (!$this->session->isValidCsrfToken($_POST['csrf_token'] ?? null)) {
-            $this->redirect('newmovie.php', 'Requisição inválida. Tente novamente.', 'error');
+            $this->redirect($errorPath, 'Requisição inválida. Tente novamente.', 'error');
+        }
+    }
+
+    /**
+     * Carrega o filme do parâmetro "id" (GET ou POST) garantindo que pertence ao usuário logado.
+     * Inexistente e de outro usuário recebem a mesma resposta, sem revelar a diferença.
+     */
+    private function loadOwnedMovie(): Movie
+    {
+        $raw = $_GET['id'] ?? $_POST['id'] ?? '';
+        $id  = is_string($raw) && ctype_digit($raw) && strlen($raw) <= 10 ? (int) $raw : 0;
+
+        $movie = $id > 0 ? $this->movieDAO->findById($id) : null;
+
+        if ($movie === null || $movie->getUserId() !== (int) $this->currentUser->getId()) {
+            $this->redirect('dashboard.php', 'Filme não encontrado.', 'error');
         }
 
-        $this->create();
+        return $movie;
     }
 
     private function create(): void
@@ -91,7 +155,67 @@ class MovieController
             $this->redirect('newmovie.php', 'Não foi possível cadastrar o filme. Tente novamente.', 'error');
         }
 
-        $this->redirect('', 'Filme cadastrado com sucesso!');
+        // Leva ao painel, onde o usuário vê o filme recém-criado e pode editá-lo.
+        $this->redirect('dashboard.php', 'Filme cadastrado com sucesso!');
+    }
+
+    private function update(Movie $existing, string $errorPath): void
+    {
+        $data     = $this->buildMovieFromRequest($errorPath);
+        $oldImage = $existing->getImage();
+        $newImage = null;
+
+        $file = isset($_FILES['image']) && is_array($_FILES['image']) ? $_FILES['image'] : null;
+
+        if ($this->imageUploader->wasSent($file)) {
+            try {
+                $newImage = $this->imageUploader->upload($file);
+            } catch (UploadException $e) {
+                $this->redirect($errorPath, $e->getMessage(), 'error');
+            }
+        }
+
+        // Dono e id vêm do registro já validado, nunca do formulário.
+        $existing
+            ->setTitle($data->getTitle())
+            ->setDescription($data->getDescription())
+            ->setCategory($data->getCategory())
+            ->setLength($data->getLength())
+            ->setTrailer($data->getTrailer());
+
+        if ($newImage !== null) {
+            $existing->setImage($newImage);
+        }
+
+        try {
+            $this->movieDAO->update($existing);
+        } catch (PDOException $e) {
+            $this->imageUploader->delete($newImage);
+            error_log('Falha ao atualizar filme: ' . $e->getMessage());
+            $this->redirect($errorPath, 'Não foi possível atualizar o filme. Tente novamente.', 'error');
+        }
+
+        // Só apaga a capa antiga depois que o UPDATE deu certo.
+        if ($newImage !== null) {
+            $this->imageUploader->delete($oldImage);
+        }
+
+        $this->redirect('dashboard.php', 'Filme atualizado com sucesso!');
+    }
+
+    private function delete(): void
+    {
+        $movie = $this->loadOwnedMovie();
+
+        try {
+            $this->movieDAO->delete((int) $movie->getId());
+        } catch (PDOException $e) {
+            error_log('Falha ao excluir filme: ' . $e->getMessage());
+            $this->redirect('dashboard.php', 'Não foi possível excluir o filme. Tente novamente.', 'error');
+        }
+
+        $this->imageUploader->delete($movie->getImage());
+        $this->redirect('dashboard.php', 'Filme excluído com sucesso!');
     }
 
     /**
