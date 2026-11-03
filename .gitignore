@@ -13,3 +13,9 @@ img/movies/*
 img/users/*
 !img/users/.gitkeep
 !img/users/user.png
+
+# Configuração local do app (modo debug) e logs de erro
+config/app.php
+logs/*
+!logs/.gitkeep
+!logs/.htaccess

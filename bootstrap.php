@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 use MovieStar\Core\Auth;
 use MovieStar\Core\Database;
+use MovieStar\Core\ErrorHandler;
 use MovieStar\Core\Session;
 use MovieStar\DAO\MovieDAO;
 use MovieStar\DAO\ReviewDAO;
 use MovieStar\DAO\UserDAO;
 
 require_once __DIR__ . '/autoload.php';
+
+// Sem config/app.php, o modo é produção (debug desligado).
+$appConfig = is_file(__DIR__ . '/config/app.php') ? require __DIR__ . '/config/app.php' : [];
+(new ErrorHandler(is_array($appConfig) && ($appConfig['debug'] ?? false) === true, __DIR__ . '/logs/app.log'))->register();
 
 $session = new Session();
 $session->start();

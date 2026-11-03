@@ -43,6 +43,8 @@ Em desenvolvimento...
 
 4. Copie `config/database.example.php` para `config/database.php` e ajuste as credenciais se necessario (padrao: `root` sem senha). O arquivo `config/database.php` nao e versionado.
 
+   Copie tambem `config/app.example.php` para `config/app.php` e use `'debug' => true` em desenvolvimento (mostra detalhes dos erros). Sem esse arquivo, ou com `false`, o app mostra uma pagina de erro generica e grava o detalhe em `logs/app.log`.
+
 5. Inicie o Apache e o MySQL pelo painel do WAMP (icone verde na bandeja do sistema).
 
 6. Acesse no navegador:
