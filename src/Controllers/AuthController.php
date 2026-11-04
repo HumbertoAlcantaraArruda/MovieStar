@@ -8,6 +8,7 @@ use MovieStar\Core\Auth;
 use MovieStar\Core\LoginThrottle;
 use MovieStar\Core\Session;
 use MovieStar\Core\UserRules;
+use MovieStar\DAO\DuplicateEmailException;
 use MovieStar\DAO\UserDAO;
 use MovieStar\Models\User;
 
@@ -23,6 +24,8 @@ class AuthController
     public const MAX_EMAIL_LENGTH = 191;
 
     private const DUMMY_PASSWORD_HASH = '$2y$10$o2uSAW5K.psVUFKPXkU22.u.qgNr./Ddm6NbMIC3UzRtIBNMw2AAu';
+
+    private const MSG_EMAIL_TAKEN = 'Este e-mail já está cadastrado.';
 
     private UserDAO $userDAO;
     private Session $session;
@@ -112,7 +115,7 @@ class AuthController
         }
 
         if ($this->userDAO->findByEmail($email) !== null) {
-            $this->redirect('auth.php', 'Este e-mail já está cadastrado.', 'error');
+            $this->redirect('auth.php', self::MSG_EMAIL_TAKEN, 'error');
         }
 
         $user = (new User())
@@ -122,7 +125,13 @@ class AuthController
             ->setPassword(password_hash($password, PASSWORD_DEFAULT))
             ->setToken(bin2hex(random_bytes(25)));
 
-        $id = $this->userDAO->create($user);
+        // A UNIQUE de users.email cobre a corrida entre a checagem acima e o INSERT
+        // (dois cadastros simultâneos com o mesmo e-mail).
+        try {
+            $id = $this->userDAO->create($user);
+        } catch (DuplicateEmailException $e) {
+            $this->redirect('auth.php', self::MSG_EMAIL_TAKEN, 'error');
+        }
 
         $this->session->login($id, (string) $user->getToken());
         $this->redirect('', 'Cadastro realizado com sucesso!');

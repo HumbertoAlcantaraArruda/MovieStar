@@ -6,9 +6,13 @@ namespace MovieStar\DAO;
 
 use MovieStar\Models\User;
 use PDO;
+use PDOException;
 
 class UserDAO
 {
+    /** Código de erro do MySQL para chave duplicada (SQLSTATE 23000). */
+    private const MYSQL_DUPLICATE_KEY = 1062;
+
     private PDO $pdo;
 
     public function __construct(PDO $pdo)
@@ -40,6 +44,8 @@ class UserDAO
 
     /**
      * Insere o usuário e retorna o id gerado.
+     *
+     * @throws DuplicateEmailException se o e-mail já estiver cadastrado (garantido pela UNIQUE do banco)
      */
     public function create(User $user): int
     {
@@ -54,7 +60,16 @@ class UserDAO
         $stmt->bindValue(':image', $user->getImage());
         $stmt->bindValue(':token', $user->getToken());
         $stmt->bindValue(':bio', $user->getBio());
-        $stmt->execute();
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000' && (int) ($e->errorInfo[1] ?? 0) === self::MYSQL_DUPLICATE_KEY) {
+                throw new DuplicateEmailException('E-mail já cadastrado.', 0, $e);
+            }
+
+            throw $e;
+        }
 
         return (int) $this->pdo->lastInsertId();
     }

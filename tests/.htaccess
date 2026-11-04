@@ -1,0 +1,2 @@
+# Testes automatizados: rodam só pela linha de comando (php tests/run.php), nunca por HTTP (Apache 2.4).
+Require all denied

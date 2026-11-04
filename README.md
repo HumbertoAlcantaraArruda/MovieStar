@@ -53,7 +53,8 @@ MovieStar/
 │   ├── Core/            Infraestrutura: banco, sessão, autenticação, upload, paginação, erros
 │   ├── DAO/             Acesso ao banco (único lugar com SQL, via PDO e prepared statements)
 │   └── Models/          Entidades de dados: Movie, Review, User
-└── templates/           Partes reutilizáveis de HTML (cabeçalho, rodapé, cards, formulários, paginação)
+├── templates/           Partes reutilizáveis de HTML (cabeçalho, rodapé, cards, formulários, paginação)
+└── tests/               Testes automatizados em PHP puro (run.php, Unit/, Integration/, Support/, cgi/)
 ```
 
 ## Configuração
@@ -104,6 +105,23 @@ MovieStar/
    http://localhost/MovieStar/
    ```
 
+## Testes
+
+Suíte própria em PHP puro (sem Composer nem PHPUnit), rodada pela linha de comando na raiz do projeto:
+
+```bash
+php tests/run.php              # todos os testes
+php tests/run.php YouTube      # só os testes cujo "Classe::metodo" contém o texto
+php tests/run.php --keep-db    # não apaga o banco de teste no fim (para inspecionar)
+```
+
+- **Unitários** (`tests/Unit/`): `LoginThrottle`, `Session` (CSRF, flash), `YouTube`, `UserRules`, regras do `ImageUploader` e uma checagem de sintaxe exclusiva do PHP 8 (o projeto deve rodar no 7.4).
+- **Integração** (`tests/Integration/`): DAOs e controllers contra o banco de teste, e uploads reais de imagem.
+- **Banco de teste**: usa as credenciais de `config/database.php` com o nome do banco acrescido de `_test` (ex.: `moviestar_test`). O runner o recria a partir de `database/schema.sql` a cada execução e o apaga no fim; o banco principal nunca é usado. O usuário do MySQL precisa de permissão para criar e apagar esse banco.
+- **Controllers e uploads** rodam em um processo `php-cgi` separado (o `php-cgi` que fica ao lado do `php` usado, como no WAMP), sem servidor web; os arquivos enviados vão para uma pasta temporária do sistema, nunca para `img/`. Sem `php-cgi`, esses testes aparecem como pulados.
+- Saída: um resumo com testes que passaram/falharam/foram pulados; o código de saída é `0` quando tudo passa e `1` quando algo falha.
+- A pasta `tests/` é bloqueada para acesso HTTP pelo `.htaccess`.
+
 ## Produção
 
 Antes de publicar, revise os pontos abaixo:
@@ -117,8 +135,8 @@ Antes de publicar, revise os pontos abaixo:
 
 - O cadastro informa se um e-mail já está em uso (isso permite descobrir contas existentes).
 - O limite de tentativas é por conta: quem conhece um e-mail consegue bloquear o login daquela conta por 15 minutos.
-- Dois cadastros simultâneos com o mesmo e-mail podem gerar erro 500 em vez de uma mensagem amigável.
-- O código foi testado no PHP 8.3; a compatibilidade com PHP 7.4 é a meta declarada, mas ainda não foi verificada em PHP 7.4.
+- A busca por um termo que **começa** com `!` não encontra resultados no MySQL 5.7 (falha do próprio MySQL com o caractere de escape do `LIKE` nas collations `utf8mb4_unicode_ci`); `!` no meio ou no fim do termo funciona.
+- O código é testado no PHP 8.0 a 8.5 (`php -l` e a suíte de testes); a compatibilidade com PHP 7.4 é verificada por análise da sintaxe, mas não foi executada em um PHP 7.4 real.
 
 ## Banco de Dados
 
