@@ -122,15 +122,6 @@ php tests/run.php --keep-db    # não apaga o banco de teste no fim (para inspec
 - Saída: um resumo com testes que passaram/falharam/foram pulados; o código de saída é `0` quando tudo passa e `1` quando algo falha.
 - A pasta `tests/` é bloqueada para acesso HTTP pelo `.htaccess`.
 
-## Produção
-
-Antes de publicar, revise os pontos abaixo:
-
-- **Modo de depuração desligado**: em `config/app.php`, use `'debug' => false` (ou remova o arquivo). Com `debug` ligado, erros mostram detalhes internos na tela.
-- **HSTS não está ligado por padrão**: o cabeçalho `Strict-Transport-Security` só deve ser enviado quando o site responde somente por HTTPS. Se ativá-lo em `.htaccess` (ex.: `Header always set Strict-Transport-Security "max-age=31536000"`), faça isso apenas com HTTPS funcionando, pois o cabeçalho afeta todos os sites do mesmo host, inclusive em `localhost`.
-- **Atrás de proxy reverso**: o limite de tentativas de login por IP usa `REMOTE_ADDR`. Por trás de um proxy, todos os usuários aparecem com o IP do proxy, então o limite por IP passa a valer para todos juntos. Além disso, para o cookie de sessão ser marcado como seguro, o servidor precisa receber `HTTPS=on` do proxy.
-- **Permissões**: restrinja a escrita às pastas `img/movies/`, `img/users/` e `logs/`.
-
 ## Banco de Dados
 
 | Parâmetro | Valor padrão |
