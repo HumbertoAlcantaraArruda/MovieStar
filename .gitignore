@@ -21,3 +21,5 @@ config/app.php
 logs/*
 !logs/.gitkeep
 !logs/.htaccess
+
+.mcp.json
