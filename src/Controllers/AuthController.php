@@ -25,7 +25,8 @@ class AuthController
 
     private const DUMMY_PASSWORD_HASH = '$2y$10$o2uSAW5K.psVUFKPXkU22.u.qgNr./Ddm6NbMIC3UzRtIBNMw2AAu';
 
-    private const MSG_EMAIL_TAKEN = 'Este e-mail já está cadastrado.';
+    /** Mensagem genérica: não confirma se o e-mail informado já pertence a uma conta. */
+    public const MSG_REGISTER_FAILED = 'Não foi possível concluir o cadastro. Se você já tem uma conta, faça login.';
 
     private UserDAO $userDAO;
     private Session $session;
@@ -115,7 +116,7 @@ class AuthController
         }
 
         if ($this->userDAO->findByEmail($email) !== null) {
-            $this->redirect('auth.php', self::MSG_EMAIL_TAKEN, 'error');
+            $this->redirect('auth.php', self::MSG_REGISTER_FAILED, 'error');
         }
 
         $user = (new User())
@@ -130,7 +131,7 @@ class AuthController
         try {
             $id = $this->userDAO->create($user);
         } catch (DuplicateEmailException $e) {
-            $this->redirect('auth.php', self::MSG_EMAIL_TAKEN, 'error');
+            $this->redirect('auth.php', self::MSG_REGISTER_FAILED, 'error');
         }
 
         $this->session->login($id, (string) $user->getToken());

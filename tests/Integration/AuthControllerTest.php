@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MovieStar\Tests\Integration;
 
+use MovieStar\Controllers\AuthController;
 use MovieStar\Core\LoginThrottle;
 use MovieStar\DAO\UserDAO;
 use MovieStar\Tests\Support\ControllerTestCase;
@@ -84,7 +85,7 @@ class AuthControllerTest extends ControllerTestCase
 
         $result = $this->post('auth', ['email' => strtoupper(self::EMAIL)] + $this->registerData());
 
-        $this->assertRedirect($result, 'auth.php', 'Este e-mail já está cadastrado.');
+        $this->assertRedirect($result, 'auth.php', AuthController::MSG_REGISTER_FAILED);
         $this->assertSame(1, $this->countRows('users'));
     }
 
@@ -96,7 +97,7 @@ class AuthControllerTest extends ControllerTestCase
 
         $result = $this->post('auth', $this->registerData(), ['spec' => ['raceOnEmail' => true]]);
 
-        $this->assertRedirect($result, 'auth.php', 'Este e-mail já está cadastrado.');
+        $this->assertRedirect($result, 'auth.php', AuthController::MSG_REGISTER_FAILED);
         $this->assertFalse(isset($result['session']['user_id']), 'ninguém foi logado');
         $this->assertSame(1, $this->countRows('users'));
     }

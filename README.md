@@ -131,13 +131,6 @@ Antes de publicar, revise os pontos abaixo:
 - **Atrás de proxy reverso**: o limite de tentativas de login por IP usa `REMOTE_ADDR`. Por trás de um proxy, todos os usuários aparecem com o IP do proxy, então o limite por IP passa a valer para todos juntos. Além disso, para o cookie de sessão ser marcado como seguro, o servidor precisa receber `HTTPS=on` do proxy.
 - **Permissões**: restrinja a escrita às pastas `img/movies/`, `img/users/` e `logs/`.
 
-## Limitações conhecidas
-
-- O cadastro informa se um e-mail já está em uso (isso permite descobrir contas existentes).
-- O limite de tentativas é por conta: quem conhece um e-mail consegue bloquear o login daquela conta por 15 minutos.
-- A busca por um termo que **começa** com `!` não encontra resultados no MySQL 5.7 (falha do próprio MySQL com o caractere de escape do `LIKE` nas collations `utf8mb4_unicode_ci`); `!` no meio ou no fim do termo funciona.
-- O código é testado no PHP 8.0 a 8.5 (`php -l` e a suíte de testes); a compatibilidade com PHP 7.4 é verificada por análise da sintaxe, mas não foi executada em um PHP 7.4 real.
-
 ## Banco de Dados
 
 | Parâmetro | Valor padrão |
